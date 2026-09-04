@@ -1,0 +1,697 @@
+<meta charset="utf-8">
+<title>SimpleBooking · Domanda vs Vendite — Domande di esempio</title>
+<!--
+  Changelog (interno — non visibile nella pagina)
+  v1.0 — 2026-08-31 — Prima versione: 23 domande, 7 categorie. Nato come catalogo
+  di scoping, ora accompagna la skill sb-demand-capture (v1, non ancora validata
+  su dati reali — vedi SKILL.md di quella skill), che orchestra sb-revenue-lens
+  (Booking Engine IBE MCP: domanda d'area, disponibilità, prezzi) e
+  sb-reservation-insights (Back Office MCP: prenotazioni reali).
+-->
+
+<style>
+  :root {
+    --navy:   #0f2e4d;
+    --navy2:  #1b4f7a;
+    --accent: #13a89e;
+    --ink:    #1f2a37;
+    --muted:  #64748b;
+    --line:   #e4e9f0;
+    --bg:     #f6f8fb;
+    --soft:   #f0f4f9;
+    --white:  #ffffff;
+    --shadow: 0 2px 14px rgba(15, 46, 77, .09);
+
+    --sans: Inter, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    --step--1: clamp(.78rem, .76rem + .08vw, .83rem);
+    --step-0:  clamp(.95rem, .92rem + .12vw, 1rem);
+    --step-1:  clamp(1.08rem, 1.02rem + .26vw, 1.22rem);
+    --step-2:  clamp(1.32rem, 1.2rem + .5vw, 1.65rem);
+    --step-3:  clamp(1.7rem, 1.4rem + 1.3vw, 2.5rem);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: var(--step-0);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; }
+
+  /* ── hero ─────────────────────────────────────────────── */
+  .hero {
+    background: linear-gradient(120deg, var(--navy), var(--navy2));
+    color: #fff;
+    padding: clamp(2rem, 1.4rem + 3vw, 3.4rem) clamp(1rem, .5rem + 3vw, 3rem);
+  }
+  .hero-inner { max-width: 1180px; margin: 0 auto; position: relative; }
+
+  .lang-switch { position: absolute; top: 0; right: 0; z-index: 2; }
+  .hero .switch {
+    background: rgba(255, 255, 255, .12);
+    border-color: rgba(255, 255, 255, .3);
+    box-shadow: none;
+  }
+  .hero .switch button { color: rgba(255, 255, 255, .78); }
+  .hero .switch button[aria-pressed="true"] { background: #fff; color: var(--navy); }
+  @media (max-width: 34rem) {
+    .lang-switch { position: static; margin-bottom: .9rem; }
+  }
+  .eyebrow {
+    font-size: var(--step--1);
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: #fff;
+    opacity: .8;
+    font-weight: 700;
+  }
+  .hero h1 {
+    font-size: var(--step-3);
+    line-height: 1.1;
+    letter-spacing: -.02em;
+    margin: .6rem 0 .5rem;
+    font-weight: 780;
+    text-wrap: balance;
+    max-width: 22ch;
+  }
+  .hero .lede {
+    margin: 0;
+    max-width: 62ch;
+    opacity: .92;
+    font-size: var(--step-1);
+    line-height: 1.55;
+    text-wrap: pretty;
+  }
+  .pills { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.1rem; }
+  .pill {
+    display: inline-block;
+    background: rgba(255, 255, 255, .14);
+    border: 1px solid rgba(255, 255, 255, .22);
+    border-radius: 20px;
+    padding: .3rem .85rem;
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+
+  .setup {
+    margin-top: 1.6rem;
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .22);
+    border-radius: 10px;
+    padding: 1.1rem 1.3rem;
+    display: grid;
+    gap: .7rem;
+    max-width: 78ch;
+    backdrop-filter: blur(2px);
+  }
+  .setup .label {
+    font-size: var(--step--1);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #fff;
+    opacity: .85;
+    font-weight: 700;
+  }
+  .setup p { margin: 0; opacity: .88; max-width: 62ch; font-size: var(--step--1); }
+
+  .qrow {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: .6rem;
+    align-items: start;
+    background: rgba(255, 255, 255, .1);
+    border-radius: 8px;
+    padding: .7rem .85rem;
+  }
+  .qtext {
+    font-family: var(--mono);
+    font-size: .875rem;
+    line-height: 1.55;
+    color: #fff;
+    min-width: 0;
+    overflow-wrap: break-word;
+  }
+
+  /* ── shell ────────────────────────────────────────────── */
+  .shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 1rem + 2vw, 2.75rem) clamp(1rem, .5rem + 3vw, 3rem) 0;
+    display: grid;
+    gap: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  }
+  @media (min-width: 62rem) {
+    .shell { grid-template-columns: 15.5rem 1fr; align-items: start; }
+  }
+  .outro-wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 clamp(1rem, .5rem + 3vw, 3rem) 4rem;
+  }
+  @media (min-width: 62rem) {
+    .outro-wrap { padding-left: calc(15.5rem + clamp(1.5rem, 1rem + 2vw, 2.5rem) + clamp(1rem, .5rem + 3vw, 3rem)); padding-right: clamp(1rem, .5rem + 3vw, 3rem); }
+  }
+
+  /* ── sidebar ──────────────────────────────────────────── */
+  .rail { display: grid; gap: 1.4rem; align-self: start; }
+  @media (min-width: 62rem) { .rail { position: sticky; top: 1.5rem; max-height: calc(100vh - 3rem); overflow-y: auto; } }
+  .switch {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    overflow: hidden;
+    background: var(--white);
+    width: fit-content;
+    box-shadow: var(--shadow);
+  }
+  .switch button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: .04em;
+    padding: .4rem .9rem;
+    cursor: pointer;
+  }
+  .switch button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+
+  nav.catnav ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .1rem; }
+  nav.catnav a {
+    display: flex;
+    gap: .55rem;
+    align-items: baseline;
+    padding: .35rem .55rem;
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: var(--step--1);
+    line-height: 1.35;
+  }
+  nav.catnav a:hover { background: var(--soft); color: var(--navy); }
+  nav.catnav a .n { font-family: var(--mono); color: var(--accent); font-size: .72rem; font-weight: 700; }
+  .rail-title {
+    font-size: var(--step--1);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: .5rem;
+  }
+
+  /* ── categories ───────────────────────────────────────── */
+  .cats { display: grid; gap: 1.75rem; min-width: 0; }
+  .cat {
+    display: grid;
+    gap: .8rem;
+    scroll-margin-top: 1.2rem;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 1.4rem 1.5rem 1.6rem;
+  }
+  .cat-head { display: grid; gap: .3rem; border-bottom: 1px solid var(--line); padding-bottom: .7rem; }
+  .cat-head .kicker { font-size: var(--step--1); font-weight: 700; color: var(--accent); letter-spacing: .04em; }
+  .cat-head h2 {
+    margin: 0;
+    font-size: var(--step-2);
+    letter-spacing: -.01em;
+    line-height: 1.2;
+    font-weight: 720;
+    color: var(--navy);
+    text-wrap: balance;
+  }
+  .cat-head .why { margin: 0; color: var(--muted); max-width: 68ch; text-wrap: pretty; }
+
+  ol.qs { list-style: none; margin: 0; padding: 0; display: grid; gap: .15rem; }
+  li.q { display: grid; gap: .35rem; padding: .35rem 0; border-top: 1px solid var(--soft); }
+  li.q:first-child { border-top: none; }
+  .qgrid {
+    display: grid;
+    grid-template-columns: 2rem 1fr auto;
+    gap: .5rem;
+    align-items: start;
+    padding-top: .35rem;
+  }
+  .qnum {
+    font-family: var(--mono);
+    font-size: .78rem;
+    color: var(--accent);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    padding-top: .28rem;
+    text-align: right;
+  }
+  .qtext2 {
+    font-size: .93rem;
+    line-height: 1.55;
+    color: var(--ink);
+    min-width: 0;
+    overflow-wrap: break-word;
+  }
+  .copy {
+    appearance: none;
+    border: 1px solid var(--line);
+    background: var(--soft);
+    color: var(--muted);
+    font: inherit;
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: .3rem .65rem;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .12s ease, color .12s ease, border-color .12s ease;
+  }
+  .copy:hover { border-color: var(--accent); color: var(--accent); background: #fff; }
+  .copy[data-done="1"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .fu {
+    grid-column: 2 / -1;
+    display: grid;
+    gap: .3rem;
+    margin: .1rem 0 .2rem;
+  }
+  .fu-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: .5rem;
+    align-items: start;
+    border-left: 2px solid var(--line);
+    padding: .1rem 0 .1rem .65rem;
+  }
+  .fu-item .t {
+    font-size: .84rem;
+    color: var(--muted);
+    line-height: 1.5;
+    min-width: 0;
+    overflow-wrap: break-word;
+  }
+  .fu-item .t::before {
+    content: attr(data-tag);
+    display: block;
+    font-size: .66rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: .1rem;
+  }
+  .fu-item .copy { font-size: .64rem; padding: .22rem .5rem; }
+
+  /* ── caveat ───────────────────────────────────────────── */
+  .caveat {
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: .9rem 1.1rem;
+    color: var(--ink);
+    font-size: var(--step--1);
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .caveat b { color: var(--navy); }
+
+  /* ── outro ────────────────────────────────────────────── */
+  .outro { border-top: 1px solid var(--line); padding-top: 2rem; margin-top: .5rem; }
+  .foot-block {
+    display: grid;
+    gap: .5rem;
+  }
+  .foot-brand { font-size: .95rem; color: var(--navy); }
+  .foot-brand b { color: var(--navy); }
+  .foot-note { color: var(--muted); font-size: var(--step--1); max-width: 72ch; }
+  .foot-meta { color: var(--muted); font-size: .78rem; margin: .2rem 0 0; }
+
+  code {
+    font-family: var(--mono);
+    font-size: .86em;
+    background: var(--soft);
+    padding: .08em .32em;
+    border-radius: 2px;
+  }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="lang-switch">
+      <div class="switch" role="group">
+        <button type="button" data-lang="it" aria-pressed="true">IT</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </div>
+
+    <div class="eyebrow" data-t="eyebrow"></div>
+    <h1 data-t="title"></h1>
+    <p class="lede" data-t="lede"></p>
+    <div class="pills">
+      <span class="pill" data-t="pillCount"></span>
+      <span class="pill" data-t="pillCats"></span>
+      <span class="pill" data-t="pillSource"></span>
+    </div>
+
+    <div class="setup">
+      <div class="label" data-t="setupLabel"></div>
+      <div class="qrow">
+        <div class="qtext" data-t="setupPrompt"></div>
+        <button class="copy" data-copy="setupPrompt" data-t-label="copy"></button>
+      </div>
+      <p data-t="setupNote"></p>
+    </div>
+  </div>
+</div>
+
+<div class="shell" style="padding-bottom:0">
+  <div></div>
+  <div class="caveat" data-t="caveatText"></div>
+</div>
+
+<div class="shell">
+
+  <aside class="rail">
+    <nav class="catnav">
+      <div class="rail-title" data-t="indexLabel"></div>
+      <ol id="index"></ol>
+    </nav>
+  </aside>
+
+  <main class="cats" id="cats"></main>
+
+</div>
+
+<div class="outro-wrap">
+  <footer class="outro">
+    <div class="foot-block">
+      <div class="foot-brand"><b style="color:#0f2e4d">Simple</b>Booking · Domanda vs Vendite</div>
+      <p class="foot-note" data-t="foot"></p>
+      <p class="foot-meta"><span data-t="version"></span> · <span data-t="copyright"></span></p>
+    </div>
+  </footer>
+</div>
+
+<script>
+const DATA = {
+  it: {
+    eyebrow: "SimpleBooking · Booking Engine × Back Office",
+    title: "23 domande che uniscono domanda e vendite",
+    lede: "Un assistente AI collegato allo stesso tempo al Booking Engine (domanda d'area, disponibilità, prezzi) e al Back Office (prenotazioni reali) può rispondere a domande che nessuno dei due, da solo, può risolvere: se la domanda di mercato c'è e tu non la converti, o se il mercato per certe date non c'è affatto. 23 esempi, organizzati per argomento.",
+    pillCount: "23 domande",
+    pillCats: "7 categorie",
+    pillSource: "Booking Engine + Back Office SimpleBooking",
+    setupLabel: "Da dire per primo",
+    setupPrompt: "Lavoriamo su {{NOME HOTEL}}, property {{PROPERTY_ID}}. Per tutte le domande che seguono tieni collegati sia il Booking Engine sia il Back Office di questa struttura, senza chiedermelo di nuovo. La domanda d'area è calcolata sulla destinazione, non sulla singola struttura: quando è rilevante per interpretare la risposta, dichiaralo sempre. Se una domanda richiede un periodo: quando non è chiaro né deducibile dal contesto, chiedimelo prima di rispondere invece di tirarlo a caso; se un default ragionevole esiste, usalo pure, ma dichiara sempre quale periodo hai usato.",
+    setupNote: "Sostituisci i due segnaposto con la tua struttura — se non conosci il Property ID puoi lasciarlo vuoto, te lo chiederà o lo cercherà da solo. Da qui in poi nessuna delle domande dovrà ripetere la property.",
+    caveatText: "<b>Da tenere a mente:</b> la domanda d'area del Booking Engine misura le ricerche sulla destinazione, non sulla tua struttura specifica — hotel vicini vedono la stessa domanda. Per questo i confronti qui sotto non sono un vero \"tasso di conversione\", ma un indicatore di quanto la tua struttura sta catturando (o mancando) il mercato che la circonda.",
+    indexLabel: "Categorie",
+    copy: "Copia",
+    copied: "Copiato",
+    followTag: "Poi puoi chiedere",
+    foot: "Questo catalogo accompagna la skill sb-demand-capture, che orchestra sb-revenue-lens (Booking Engine) e sb-reservation-insights (Back Office) senza ricalcolarne la logica. È una versione v1, non ancora validata su dati reali: prima di usarla con un cliente, verifica i risultati su una struttura vera. Le risposte useranno sempre i dati della tua struttura — quelli qui sopra sono solo esempi di domanda. Per informazioni contatta il tuo referente SimpleBooking.",
+    version: "Versione 1.0 — 31 agosto 2026",
+    copyright: "© 2025-2026 SimpleBooking — Zucchetti Group. Tutti i diritti riservati.",
+    cats: [
+      {
+        t: "Domanda vs vendite reali",
+        why: "La domanda d'area ti dice quanto il mercato cerca la tua destinazione; il Back Office ti dice quanto stai davvero vendendo. Messe insieme, capisci se il problema è il mercato o sei tu.",
+        qs: [
+          { n: 1, q: "Questo mese la domanda d'area sta crescendo o calando rispetto al mese scorso? Il mio on-the-books segue lo stesso andamento?", fu: ["Se calano insieme è normale stagionalità: dove sto invece perdendo terreno rispetto al mercato?"] },
+          { n: 2, q: "Sulle prossime tre settimane, quanta domanda d'area c'è stata rispetto alle prenotazioni che ho davvero acquisito?" },
+          { n: 3, q: "Negli ultimi 12 mesi, il mio fatturato ha seguito la stagionalità della domanda d'area, o mi sono mosso controcorrente?" },
+          { n: 4, q: "Quali settimane del prossimo trimestre hanno la domanda d'area più alta, e a che punto sono con l'on-the-books su quelle stesse settimane?" }
+        ]
+      },
+      {
+        t: "Perché non converto",
+        why: "Quando la domanda c'è ma le prenotazioni reali no, il problema è quasi sempre a valle: una restrizione, una chiusura, un prezzo. Qui lo verifichi riga per riga.",
+        qs: [
+          { n: 5, q: "Su una data con domanda d'area alta ma pochissime prenotazioni reali, è colpa del minimum stay, della disponibilità chiusa o del prezzo?" },
+          { n: 6, q: "Quali notti ad alta domanda risultano \"non prenotabili\" sul calendario disponibilità?", fu: ["Di quelle notti, quante erano già chiuse una settimana prima?"] },
+          { n: 7, q: "Il mio minimum stay attuale, applicato alla domanda futura e non solo allo storico prenotato, quante ricerche rischia di respingere?" },
+          { n: 8, q: "Le date dove ricevo più soggiorni di una notte sola hanno anche una domanda d'area concentrata su soggiorni brevi?" }
+        ]
+      },
+      {
+        t: "Prezzo e parità per canale",
+        why: "Il prezzo che vendi davvero su un portale e quello che il tuo booking engine espone in parità dovrebbero coincidere. Quando non succede, qualcuno ci guadagna e non sei tu.",
+        qs: [
+          { n: 9, q: "Il mio ADR reale su Booking.com coincide con il prezzo che il booking engine espone in parità OTA per le stesse date?" },
+          { n: 10, q: "Ci sono date in cui il prezzo esposto sul mio booking engine è più alto di quello che vendo davvero su OTA?" },
+          { n: 11, q: "C'è un canale che sta guadagnando quota perché il mio prezzo diretto non regge il confronto con la domanda di mercato?" }
+        ]
+      },
+      {
+        t: "Prodotto e catalogo vs domanda",
+        why: "Pacchetti, offerte e tipologie di camera dovrebbero rincorrere la domanda, non il contrario. Qui verifichi se il tuo catalogo copre davvero ciò che il mercato cerca.",
+        qs: [
+          { n: 12, q: "I pacchetti che ho a catalogo intercettano davvero i periodi di picco della domanda d'area?" },
+          { n: 13, q: "Le offerte attive in questo momento coincidono con periodi di domanda debole? Stanno funzionando?" },
+          { n: 14, q: "C'è un segmento di domanda — famiglie, coppie, viaggiatori business — visibile nella domanda d'area ma che il mio catalogo camere non copre bene?" }
+        ]
+      },
+      {
+        t: "Mercati e segmenti: chi cerca vs chi prenota",
+        why: "La domanda d'area segmenta per provenienza, composizione e dispositivo. Confrontata con chi prenota davvero, mostra dove stai lasciando un mercato scoperto.",
+        qs: [
+          { n: 15, q: "Da quali paesi arriva la domanda d'area sulla mia destinazione, e coincide con i mercati di provenienza dei miei ospiti reali?", fu: ["C'è un mercato estero visibile nella domanda ma quasi assente dalle mie prenotazioni?"] },
+          { n: 16, q: "Le famiglie con bambini cercano la mia destinazione più di quanto prenotino effettivamente da me?" },
+          { n: 17, q: "Il dispositivo con cui il mercato cerca (mobile o desktop) coincide con quello dei miei prenotanti diretti?" }
+        ]
+      },
+      {
+        t: "Finestra di prenotazione e pacing",
+        why: "Sapere con quanto anticipo il mercato cerca queste date, non solo con quanto anticipo tu vendi, ti dice quando è il momento giusto per aprire prezzi e pacchetti.",
+        qs: [
+          { n: 18, q: "Il mio anticipo di vendita reale è coerente con quanto anticipo il mercato cerca queste stesse date?" },
+          { n: 19, q: "In base a quando il mercato inizia a cercare un periodo, dovrei aprire prima le vendite di un pacchetto o di un'offerta?" },
+          { n: 20, q: "Per l'ultimo trimestre dell'anno, la domanda d'area a lungo anticipo sta già superando il mio on-the-books per lo stesso periodo?" }
+        ]
+      },
+      {
+        t: "Portafoglio multi-struttura",
+        why: "Se gestisci più hotel nella stessa area o in aree diverse, qui confronti chi sta davvero catturando la domanda della propria destinazione.",
+        qs: [
+          { n: 21, q: "Quale struttura del gruppo converte meglio la domanda d'area della propria destinazione in prenotazioni reali?" },
+          { n: 22, q: "A parità di domanda d'area nella stessa città, quale hotel del portafoglio vende meglio, e con quale ADR?" },
+          { n: 23, q: "Fra due strutture con domanda d'area simile, quale ha il minimum stay più stringente, e si vede nella differenza di vendite?" }
+        ]
+      }
+    ]
+  },
+
+  en: {
+    eyebrow: "SimpleBooking · Booking Engine × Back Office",
+    title: "23 questions that connect demand and sales",
+    lede: "An AI assistant connected to both the Booking Engine (area demand, availability, prices) and the Back Office (actual bookings) at once can answer questions neither can resolve alone: whether market demand exists and you are not converting it, or whether the market for certain dates simply isn't there. 23 examples, organized by topic.",
+    pillCount: "23 questions",
+    pillCats: "7 categories",
+    pillSource: "Booking Engine + Back Office SimpleBooking",
+    setupLabel: "Say this first",
+    setupPrompt: "We are working on {{HOTEL NAME}}, property {{PROPERTY_ID}}. For every question that follows, keep both the Booking Engine and the Back Office of this property connected, without asking me again. Area demand is calculated at the destination level, not for this specific property: whenever that matters for interpreting an answer, state it. If a question needs a period: when it is not clear and cannot be inferred from context, ask me before answering instead of guessing; if a reasonable default exists, go ahead and use it, but always state in the answer which period you used.",
+    setupNote: "Replace the two placeholders with your property — if you do not know the Property ID you can leave it blank, the assistant will ask or look it up itself. From here on, none of the questions repeat the property.",
+    caveatText: "<b>Worth keeping in mind:</b> the Booking Engine's area demand measures searches for the destination, not for your specific property — nearby hotels see the same demand. So the comparisons below are not a true \"conversion rate\", but a signal of how much of the surrounding market your property is capturing, or missing.",
+    indexLabel: "Categories",
+    copy: "Copy",
+    copied: "Copied",
+    followTag: "Then you can ask",
+    foot: "This catalog comes with the sb-demand-capture skill, which orchestrates sb-revenue-lens (Booking Engine) and sb-reservation-insights (Back Office) without recomputing their logic. It is a v1, not yet validated on real data: verify the results on a real property before using it with a client. The answers will always use your own property's data — the examples above are just the questions. For more information, contact your SimpleBooking representative.",
+    version: "Version 1.0 — August 31, 2026",
+    copyright: "© 2025-2026 SimpleBooking — Zucchetti Group. All rights reserved.",
+    cats: [
+      {
+        t: "Demand vs actual sales",
+        why: "Area demand tells you how much the market searches for your destination; the Back Office tells you how much you are really selling. Put together, you find out whether the problem is the market or you.",
+        qs: [
+          { n: 1, q: "Is area demand growing or falling this month compared with last month? Does my on-the-books follow the same trend?", fu: ["If both fall together that's normal seasonality: where am I instead losing ground against the market?"] },
+          { n: 2, q: "Over the next three weeks, how much area demand was there compared with the bookings I actually picked up?" },
+          { n: 3, q: "Over the last 12 months, has my revenue followed the seasonality of area demand, or have I moved against it?" },
+          { n: 4, q: "Which weeks of next quarter have the highest area demand, and where do I stand with on-the-books for those same weeks?" }
+        ]
+      },
+      {
+        t: "Why am I not converting",
+        why: "When demand exists but real bookings don't, the problem is almost always downstream: a restriction, a closure, a price. Here you check it line by line.",
+        qs: [
+          { n: 5, q: "On a date with high area demand but very few real bookings, is it the minimum stay, closed availability, or the price?" },
+          { n: 6, q: "Which high-demand nights show up as \"not bookable\" on the availability calendar?", fu: ["Of those nights, how many were already closed a week earlier?"] },
+          { n: 7, q: "Applied to future demand, not just to booked history, how many searches does my current minimum stay risk turning away?" },
+          { n: 8, q: "Do the dates where I get the most single-night stays also show area demand concentrated on short stays?" }
+        ]
+      },
+      {
+        t: "Price and channel parity",
+        why: "The price you actually sell on a portal and the one your booking engine shows in parity should match. When they don't, someone else is profiting, not you.",
+        qs: [
+          { n: 9, q: "Does my real ADR on Booking.com match the price my booking engine shows in OTA parity for the same dates?" },
+          { n: 10, q: "Are there dates where the price shown on my booking engine is higher than what I actually sell on OTAs?" },
+          { n: 11, q: "Is a channel gaining share because my direct price doesn't hold up against market demand?" }
+        ]
+      },
+      {
+        t: "Product and catalog vs demand",
+        why: "Packages, offers and room types should chase demand, not the other way around. Here you check whether your catalog really covers what the market is looking for.",
+        qs: [
+          { n: 12, q: "Do the packages in my catalog really intercept the peak periods of area demand?" },
+          { n: 13, q: "Do the offers active right now coincide with periods of weak demand? Are they working?" },
+          { n: 14, q: "Is there a demand segment — families, couples, business travellers — visible in area demand that my room catalog doesn't cover well?" }
+        ]
+      },
+      {
+        t: "Markets and segments: who searches vs who books",
+        why: "Area demand is segmented by origin, party composition and device. Compared with who actually books, it shows where you are leaving a market uncovered.",
+        qs: [
+          { n: 15, q: "Which countries does area demand for my destination come from, and does it match the source markets of my real guests?", fu: ["Is there a foreign market visible in demand but almost absent from my bookings?"] },
+          { n: 16, q: "Do families with children search for my destination more than they actually book with me?" },
+          { n: 17, q: "Does the device the market searches with (mobile or desktop) match that of my direct bookers?" }
+        ]
+      },
+      {
+        t: "Booking window and pacing",
+        why: "Knowing how far ahead the market searches for these dates, not just how far ahead you sell, tells you when the right moment is to open prices and packages.",
+        qs: [
+          { n: 18, q: "Is my real selling lead time consistent with how far ahead the market searches for these same dates?" },
+          { n: 19, q: "Based on when the market starts searching for a period, should I open sales for a package or an offer earlier?" },
+          { n: 20, q: "For the last quarter of the year, is long-lead-time area demand already outpacing my on-the-books for the same period?" }
+        ]
+      },
+      {
+        t: "Multi-property portfolio",
+        why: "If you manage more than one hotel in the same area or in different areas, here you compare who is really capturing the demand of their own destination.",
+        qs: [
+          { n: 21, q: "Which property in the group converts its own destination's area demand into real bookings best?" },
+          { n: 22, q: "At equal area demand in the same city, which hotel in the portfolio sells better, and at what ADR?" },
+          { n: 23, q: "Between two properties with similar area demand, which has the stricter minimum stay, and does it show in the sales gap?" }
+        ]
+      }
+    ]
+  }
+};
+
+let lang = "it";
+
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+
+function copyButton(getText, cls) {
+  const b = el("button", cls || "copy", DATA[lang].copy);
+  b.type = "button";
+  b.addEventListener("click", async () => {
+    const text = getText();
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (e) {
+      const ta = el("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+    }
+    b.textContent = DATA[lang].copied;
+    b.dataset.done = "1";
+    setTimeout(() => { b.textContent = DATA[lang].copy; delete b.dataset.done; }, 1400);
+  });
+  return b;
+}
+
+function render() {
+  const d = DATA[lang];
+  document.documentElement.lang = lang;
+
+  document.querySelectorAll("[data-t]").forEach(n => {
+    if (n.dataset.t === "caveatText") { n.innerHTML = d[n.dataset.t]; }
+    else { n.textContent = d[n.dataset.t]; }
+  });
+  document.querySelectorAll("[data-t-label]").forEach(n => { n.textContent = d[n.dataset["tLabel"]]; });
+
+  const setupBtn = document.querySelector('[data-copy="setupPrompt"]');
+  const fresh = copyButton(() => DATA[lang].setupPrompt);
+  setupBtn.replaceWith(fresh);
+  fresh.dataset.copy = "setupPrompt";
+
+  const cats = document.getElementById("cats");
+  const index = document.getElementById("index");
+  cats.replaceChildren();
+  index.replaceChildren();
+
+  d.cats.forEach((c, ci) => {
+    const id = "cat-" + ci;
+
+    const li = el("li");
+    const a = el("a");
+    a.href = "#" + id;
+    a.appendChild(el("span", "n", String(ci + 1)));
+    a.appendChild(el("span", null, c.t));
+    li.appendChild(a);
+    index.appendChild(li);
+
+    const sec = el("section", "cat");
+    sec.id = id;
+
+    const head = el("div", "cat-head");
+    head.appendChild(el("div", "kicker", String(ci + 1).padStart(2, "0")));
+    head.appendChild(el("h2", null, c.t));
+    head.appendChild(el("p", "why", c.why));
+    sec.appendChild(head);
+
+    const ol = el("ol", "qs");
+    c.qs.forEach(item => {
+      const q = el("li", "q");
+      const row = el("div", "qgrid");
+      row.appendChild(el("div", "qnum", String(item.n)));
+      row.appendChild(el("div", "qtext2", item.q));
+      row.appendChild(copyButton(() => item.q));
+      q.appendChild(row);
+
+      if (item.fu && item.fu.length) {
+        const fu = el("div", "fu");
+        item.fu.forEach(f => {
+          const w = el("div", "fu-item");
+          const t = el("div", "t", f);
+          t.dataset.tag = d.followTag;
+          w.appendChild(t);
+          w.appendChild(copyButton(() => f));
+          fu.appendChild(w);
+        });
+        q.appendChild(fu);
+      }
+      ol.appendChild(q);
+    });
+    sec.appendChild(ol);
+
+    cats.appendChild(sec);
+  });
+
+  document.querySelectorAll("[data-lang]").forEach(b => {
+    b.setAttribute("aria-pressed", String(b.dataset.lang === lang));
+  });
+}
+
+document.querySelectorAll("[data-lang]").forEach(b => {
+  b.addEventListener("click", () => { lang = b.dataset.lang; render(); });
+});
+
+render();
+</script>

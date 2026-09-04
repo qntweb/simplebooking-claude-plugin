@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "simplebooking-backoffice": {
+      "type": "http",
+      "url": "https://mcp.backoffice.simplebooking.it",
+      "oauth": {
+        "clientId": "claude"
+      }
+    },
+    "simplebooking-ibe": {
+      "type": "http",
+      "url": "https://mcp.ibe.simplebooking.it",
+      "oauth": {
+        "clientId": "claude"
+      }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+# ═══════════════════════════════════════════════════════
+# Hotel Content Audit — Parametri Configurabili
+# ═══════════════════════════════════════════════════════
+# Se impostato (≠ null), lo step interattivo viene saltato.
+# Il recap mostra SEMPRE tutti i parametri.
+
+# WORKFLOW
+CONVERSATION_LANGUAGE: null     # "IT"|"EN"|"FR"|"DE"|"ES" | null
+PROPERTY_ID: null               # "702"|"756"|... | null
+MASTER_LANGUAGE: null           # "IT"|"EN"|... | null
+AUDIT_LANGUAGES: null           # ["IT","EN","FR"] | "ALL" | null
+AUDIT_SECTIONS: null            # [...] | "ALL" | null
+AUDIT_TYPE: "both"              # "translations"|"formal"|"quality"|"both"|"all"
+REPORT_DETAIL: "detailed"       # "quick"|"detailed"
+EXPORT_FORMAT: null             # "pdf"|"xlsx"|"csv"|"json" | null
+
+# SOGLIE DI SEVERITY (Quality Check)
+MIN_HOTEL_DESC_CHARS: 200
+GOOD_HOTEL_DESC_CHARS: 500
+MIN_ROOM_DESC_CHARS: 80
+GOOD_ROOM_DESC_CHARS: 200
+MIN_OFFER_DESC_CHARS: 100
+
+# SOGLIE ATTIVAZIONE NEXT STEP
+NEXT_STEP_CRITICAL_THRESHOLD: 3   # ❌ su lingue != master
+NEXT_STEP_WARNING_THRESHOLD: 5    # ⚠️ su lingue != master
+NEXT_STEP_LANGUAGES_THRESHOLD: 2  # lingue con completezza < 50%
+OPPORTUNITY_MIN_SHARE: 5          # % minima traffico/domanda
+
+# GA4 + DATA LAKE
+GA4_PROPERTY_ID: null             # "properties/123456789" | null (auto)
+GA4_LOOKBACK_DAYS: 90
+DATALAKE_RADIUS_KM: 5
+DATALAKE_SEARCH_LOOKBACK: 90
+DATALAKE_STAY_LOOKAHEAD: 90
+
+# MCP OVERRIDE (normalmente auto-detect)
+FORCE_GA4_AVAILABLE: null         # true|false | null (auto)
+FORCE_DATALAKE_AVAILABLE: null    # true|false | null (auto)
+
+# CONTROLLO VOLUME API
+MAX_API_CALLS_PER_BLOCK: 10      # Ridurre a 6 per Haiku
+FORCE_MICRO_BATCH: false          # true per Haiku o contesti grandi

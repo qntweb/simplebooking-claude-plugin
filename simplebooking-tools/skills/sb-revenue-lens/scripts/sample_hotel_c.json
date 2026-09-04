@@ -1,0 +1,77 @@
+{
+  "hotel_name": "Hotel C — esempio",
+  "stars": "★★★★",
+  "pills": ["Periodo: 5 giu – 31 lug 2026", "Domanda d'area: raggio 20 km", "Rate match: attivo", "Analisi: 5 giu 2026"],
+  "question": "Le mie restrizioni di soggiorno minimo mi stanno tagliando fuori domanda a luglio?",
+  "lenses_active": "<b>L3b MinLOS vs LOS domanda</b> · <b>L2 Rischio invenduto</b> · <b>L4 Parità OTA</b>",
+  "summary": "<b>Trade-off, non errore: il MinLOS 4 di luglio cattura i cercatori di 7 notti ma respinge ~38.000 ricerche di soggiorno corto.</b> Il diretto è nettamente più conveniente delle OTA (−27%), quindi il canale è sano: la vera domanda è se la domanda long-stay basti a riempire luglio, soprattutto nell'ultima settimana già molle.",
+  "charts": {
+    "demand": {
+      "labels": ["31/05","07/06","14/06","21/06","28/06","05/07","12/07","19/07","26/07"],
+      "values": [9525,15241,16308,16029,13184,11373,12586,9676,4300],
+      "label": "Ricerche area / settimana",
+      "title": "Domanda per settimana",
+      "color_rule": [[15000,"#1b4f7a"],[10000,"#13a89e"]]
+    },
+    "los": {
+      "labels": ["7n","2n","3n","1n","4n","5n","6n","14n"],
+      "values": [26114,14131,13241,11069,10972,8640,8169,3257],
+      "label": "Ricerche per LOS",
+      "title": "Notti richieste",
+      "color_rule": [[20000,"#1b4f7a"],[14000,"#f0992b"],[10000,"#f0992b"]]
+    },
+    "caption": "Sinistra: ricerche nell'area (20 km) per settimana — picco metà giugno (~16.300), minimo ultima settimana di luglio (4.300). Destra: lunghezza soggiorno — <b>7 notti è la #1</b> (26.114), ma <b>1–3 notti combinate pesano 38.441</b>. Anticipo medio 28 → 92 giorni. <i>Dato di destinazione.</i>"
+  },
+  "lenses": [
+    {
+      "title": "L3b — MinLOS vs LOS della domanda",
+      "rule": "Regola: quota ricerche short-stay (1–3 notti) ≥ 40% E MinLOS sulle date > 3 notti → domanda matchabile rifiutata.",
+      "table": {
+        "headers": ["Soggiorno test (lug)","Esito","Prezzo/notte"],
+        "rows": [
+          ["17 → 19 (2 notti)",{"tag":"t-red","text":"bloccato — MinLOS 4"},"—"],
+          ["17 → 21 (4 notti)",{"tag":"t-gr","text":"disponibile"},"671–687 €"]
+        ]
+      },
+      "callout": "<b>Lettura:</b> a luglio imponi MinLOS 4 su tutte le date. Catturi bene i cercatori di 7 notti (la ricerca #1 dell'area), ma chi cerca 1–3 notti — il <b>53% delle ricerche</b> — non può nemmeno vederti. È una scelta di stagione legittima; diventa un problema solo se la domanda long-stay non riempie. Non è un errore: è un trade-off da decidere."
+    },
+    {
+      "title": "L2 — Rischio invenduto (incrociato con la restrizione)",
+      "rule": "Regola: domanda bassa + dentro booking window. Qui aggravata dal MinLOS 4.",
+      "note": "L'ultima settimana di luglio ha la <b>domanda più bassa del periodo</b> (4.300 ricerche, −74% vs il picco) ma mantiene <b>MinLOS 4</b>. È la combinazione più rischiosa: poca domanda <i>e</i> filtro alto sui soggiorni corti proprio quando servirebbe flessibilità. Opzione: allentare il MinLOS sull'ultima decade se il pickup resta debole."
+    },
+    {
+      "title": "L4 — Parità OTA <span class=\"small\">(soggiorno test 17–21 lug)</span>",
+      "table": {
+        "headers": ["Canale","Prezzo soggiorno","vs Diretto"],
+        "rows": [
+          ["Diretto","2.711 €","—"],
+          ["Expedia","3.438 €",{"tag":"t-gr","text":"diretto −727 € (−21%)"}],
+          ["Hotels.com","3.438 €",{"tag":"t-gr","text":"diretto −727 €"}],
+          ["Booking","3.462 €",{"tag":"t-gr","text":"diretto −751 € (−22%)"}]
+        ]
+      },
+      "note": "Il diretto è il canale più conveniente, di parecchio. Vantaggio da comunicare con forza sul sito. Nessun problema di parità."
+    }
+  ],
+  "date_map": {
+    "heading": "Mappa restrizioni — soggiorno minimo",
+    "legend": [["MinLOS 2","#f4c542"],["MinLOS 3","#f0992b"],["MinLOS 4","#e1485c"],["Nessun minimo","#eef2f7"],["Passato","#f3f4f6"]],
+    "calendars": [
+      {"id":"june","title":"Giugno 2026","year":2026,"month":6,
+       "colors":{"1":"past","2":"past","3":"past","4":"past","13":"y","21":"or","22":"or","23":"or","24":"or","25":"or","28":"or","29":"or","30":"or","26":"red","27":"red"}},
+      {"id":"july","title":"Luglio 2026","year":2026,"month":7,
+       "colors":{"1":"or","2":"or","3":"red","4":"red","5":"red","6":"red","7":"red","8":"red","9":"red","10":"red","11":"red","12":"red","13":"red","14":"red","15":"red","16":"red","17":"red","18":"red","19":"red","20":"red","21":"red","22":"red","23":"red","24":"red","25":"red","26":"red","27":"red","28":"red","29":"red","30":"red","31":"red"}}
+    ],
+    "note": "Nessun sold-out nel periodo: il vincolo qui non è la disponibilità ma la <b>lunghezza minima</b>. Luglio è interamente MinLOS 4."
+  },
+  "limits": "Diagnostico <b>domanda-d'area vs disponibilità/regole/prezzo</b>, non un sistema di revenue management. Con i soli dati SimpleBooking <b>non</b> vede on-the-books né pickup reale, né le tariffe reali dei competitor (solo parità OTA), né una fonte eventi. La quota short-stay è domanda d'<i>area</i>: parte cerca comunque altri hotel. Le indicazioni sono <b>opzioni condizionate</b>, non prescrizioni — il long-stay può essere strategia di stagione voluta.",
+  "events": "La domanda d'area sale forte a metà giugno e nelle prime settimane di luglio: confermi se ci sono eventi/sagre nell'area che giustificano i MinLOS più alti (es. la salita a MinLOS 4 del 26–27 giugno)? La skill rileva la curva ma non la causa.",
+  "options": [
+    "Decidere consapevolmente il <b>trade-off MinLOS 4</b>: tenere per proteggere il long-stay o allentare per captare i soggiorni corti.",
+    "Valutare <b>MinLOS più basso sull'ultima decade di luglio</b> (domanda più debole) se il pickup non accelera.",
+    "Spingere sul sito il <b>vantaggio diretto vs OTA (−27%)</b> emerso dalla parità.",
+    "Attivare uno <b>scan schedulato</b> per monitorare il riempimento delle settimane long-stay."
+  ],
+  "footer": "SimpleBooking · Revenue Lens — generato da sb-revenue-lens · dati MCP SimpleBooking · giu 2026"
+}

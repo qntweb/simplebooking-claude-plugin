@@ -1,0 +1,12 @@
+{
+  "name": "simplebooking-claude-plugin",
+  "owner": {
+    "name": "QNT — SimpleBooking — Zucchetti Group"
+  },
+  "plugins": [
+    {
+      "name": "simplebooking-tools",
+      "source": "./simplebooking-tools"
+    }
+  ]
+}

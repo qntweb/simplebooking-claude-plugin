@@ -1,0 +1,74 @@
+{
+  "hotel_name": "Hotel D — esempio",
+  "stars": "★★★★",
+  "pills": ["Periodo: 5 giu – 31 lug 2026", "Domanda d'area: raggio 12 km", "Rate match: attivo", "Analisi: 5 giu 2026"],
+  "question": "Analizza giugno–luglio: dove sto lasciando soldi e dove rischio l'invenduto?",
+  "lenses_active": "<b>L1 Money-leak</b> · <b>L2 Rischio invenduto</b> · <b>L3a Orphan night</b> · <b>L4 Parità OTA</b>",
+  "summary": "<b>Giugno va difeso al rialzo e \"scucito\" sulle gap-night; fine luglio va stimolato o accettato come riempimento.</b> Le ultime camere di metà giugno partono a 320–344 € con domanda d'area ancora altissima, mentre da fine luglio l'hotel è largo a 184 €. Una notte cara (23 giu, 324 €) si perde perché la notte successiva è piena.",
+  "charts": {
+    "demand": {
+      "labels": ["31/05","07/06","14/06","21/06","28/06","05/07","12/07","19/07","26/07"],
+      "values": [12928,27363,25326,21159,15585,14888,12612,11050,6762],
+      "label": "Ricerche area / settimana",
+      "color_rule": [[20000,"#1b4f7a"],[12000,"#13a89e"]]
+    },
+    "caption": "Ricerche nell'area (12 km) per settimana di check-in. La domanda crolla da ~27.000 (metà giugno) a ~6.800 (fine luglio). Soggiorni più richiesti: <b>2 notti</b> (37.903) e <b>3 notti</b> (32.908). Anticipo medio in crescita: 36 → 91 giorni. <i>Dato di destinazione, non dell'hotel.</i>"
+  },
+  "lenses": [
+    {
+      "title": "L1 — Money-leak · L3a — Orphan night",
+      "rule": "Regola: ultima camera a tariffa non premiata, e notti libere adiacenti a notti piene in settimana ad alta domanda.",
+      "table": {
+        "headers": ["Data","Disponibilità","Prezzo/notte","Domanda sett.","Segnale"],
+        "rows": [
+          ["Ven 19 giu","1–2 camere","344 €","alta (25.326)",{"tag":"t-or","text":"L1a scarsità"}],
+          ["Mar 23 giu","solo Classic","324 €","alta (21.159)",{"tag":"t-or","text":"L3a orphan"}]
+        ]
+      },
+      "note": "La notte del 23 giugno (324 €) non è vendibile in un soggiorno di 2 notti perché il 24 è pieno: chi cerca 23→25 non trova nulla. Con la domanda concentrata su 2–3 notti, è una vendita persa su una data cara."
+    },
+    {
+      "title": "L2 — Rischio invenduto",
+      "rule": "Regola: domanda bassa + molte categorie aperte + prezzo basso + dentro la booking window.",
+      "table": {
+        "headers": ["Data","Disponibilità","Prezzo/notte","Domanda sett.","Segnale"],
+        "rows": [
+          ["Dom 26 lug","5 categorie aperte","184 €","bassa (6.762)",{"tag":"t-gr","text":"L2 soft"}]
+        ]
+      },
+      "note": "Fine luglio: domanda d'area al minimo, hotel largo, prezzo più basso del periodo (184 € vs 344 € di metà giugno). Sei già oltre l'anticipo medio: il pickup è in ritardo."
+    },
+    {
+      "title": "L4 — Parità OTA <span class=\"small\">(soggiorno test 19–21 giu)</span>",
+      "table": {
+        "headers": ["Canale","Prezzo","vs Diretto"],
+        "rows": [
+          ["Diretto","657 €","—"],
+          ["Expedia","657 €","allineato"],
+          ["Hotels.com","657 €","allineato"]
+        ]
+      },
+      "note": "Parità rispettata su questa data: il diretto non è scavalcato dalle OTA. Nessun intervento necessario qui."
+    }
+  ],
+  "date_map": {
+    "heading": "Mappa date",
+    "legend": [["Sold-out","#e1485c"],["Tight / alta domanda","#f0992b"],["Soft / da stimolare","#2fa36b"],["Aperto","#eef2f7"],["Passato","#f3f4f6"]],
+    "calendars": [
+      {"id":"june","title":"Giugno 2026","year":2026,"month":6,
+       "colors":{"1":"past","2":"past","3":"past","4":"past","10":"red","15":"red","16":"red","18":"red","30":"red","17":"or","19":"or","20":"or","21":"or","23":"or","24":"or","25":"or","26":"or","27":"or","28":"or","29":"or"}},
+      {"id":"july","title":"Luglio 2026","year":2026,"month":7,
+       "colors":{"1":"red","9":"red","10":"red","11":"red","20":"gr","21":"gr","22":"gr","23":"gr","24":"gr","25":"gr","26":"gr","27":"gr","28":"gr","29":"gr","30":"gr","31":"gr"}}
+    ],
+    "note": "Colorazione basata su calendario disponibilità (sold-out) + date campione prezzate + curva di domanda. Non ogni singola notte è stata interrogata individualmente."
+  },
+  "limits": "Questo è un <b>diagnostico domanda-d'area vs disponibilità/prezzo</b>, non un sistema di revenue management. Con i soli dati SimpleBooking <b>non</b> vede: il tuo on-the-books reale né il passo di pickup; le tariffe reali dei competitor (solo parità OTA); una fonte eventi. I prezzi non includono eventuali tasse di soggiorno. Le indicazioni sono <b>opzioni condizionate</b> (\"se la domanda regge…\"), non prescrizioni.",
+  "events": "Su queste date sei pieno: <b>24 giu</b> e il cluster 15–18 giu, 30 giu, 9–11 lug. Confermi se sono legate a eventi o fiere (così tariffiamo di conseguenza i prossimi anni)? La skill rileva i pieni ma non attribuisce la causa.",
+  "options": [
+    "Verificare il <b>floor</b> sulle ultime camere del 19–28 giugno.",
+    "Valutare apertura <b>1-notte</b> sulle notti orfane adiacenti ai sold-out.",
+    "Decidere se <b>stimolare</b> fine luglio (offerta breve / pacchetto) o accettarlo come fill-in.",
+    "Attivare uno <b>scan schedulato</b> che avvisa quando le ultime camere di giugno scendono sotto soglia."
+  ],
+  "footer": "SimpleBooking · Revenue Lens — generato da sb-revenue-lens · dati MCP SimpleBooking · giu 2026"
+}

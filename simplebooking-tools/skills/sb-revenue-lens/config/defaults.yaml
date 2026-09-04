@@ -1,0 +1,92 @@
+# sb-revenue-lens — defaults & soglie
+# Le soglie sono RELATIVE al periodo/hotel (non assolute), così reggono su
+# destinazioni diverse. Calibrate su un test 4-hotel (giu-lug 2026) su destinazioni
+# urbane e costiere diverse.
+
+# ---------------------------------------------------------------------------
+# Raggio domanda d'area (km) per il demand report
+# ---------------------------------------------------------------------------
+radius_km:
+  urban_default: 12        # città (Roma, Firenze, Milano)
+  coastal_resort: 20       # Versilia, riviere
+  rural_default: 25        # campagna / laghi
+  note: >
+    La domanda d'area è di DESTINAZIONE, non di proprietà: due hotel vicini nello
+    stesso raggio ottengono numeri ~identici (verificato su una coppia di hotel a
+    200m di distanza nello stesso test). Usarla per timing e forma della curva,
+    NON come "la mia domanda".
+
+# ---------------------------------------------------------------------------
+# Allocazione ospiti di default per le query prezzo
+# ---------------------------------------------------------------------------
+default_room_allocations:
+  - adults: 2
+    children: []
+
+# ---------------------------------------------------------------------------
+# Soglie detector (tutte relative)
+# ---------------------------------------------------------------------------
+thresholds:
+
+  # Classificazione domanda settimanale: tercile sulle settimane del periodo.
+  demand_week:
+    method: tercile          # alta = top tercile, bassa = bottom tercile
+    # niente valori assoluti: si calcola sul set di settimane restituite.
+
+  # Scarsità camere (attenzione: "Available N" è per categoria+tariffa, NON
+  # inventario di casa — non gridare al sold-out).
+  scarcity:
+    tight_max_available: 2        # max camere disponibili su TUTTE le categorie <= 2 => "tight"
+    room_type_coverage_low: 0.34  # categorie prenotabili / categorie totali < 34% => offerta assottigliata
+
+  # Prezzo "piatto" nonostante scarsità (L1): prezzo notte vs mediana del periodo
+  # per lo stesso hotel/categoria. Serve almeno 1 data "soft" come baseline.
+  flat_price:
+    premium_expected_min: 0.10    # con scarsità ci si aspetta >= +10% sulla mediana
+    # se tight AND prezzo <= mediana*(1+premium_expected_min) => segnala leak
+
+  # Rischio invenduto (L2)
+  unsold_risk:
+    wide_open_room_types_min: 0.66  # >= 66% delle categorie ancora prenotabili
+    price_low_quartile: 0.25        # prezzo nel quartile basso del periodo
+    # combinato con: domanda bassa (bottom tercile) AND dentro/oltre booking window
+
+  # Booking window (L2/L5): "dentro la finestra" se giorni_residui < anticipo medio
+  booking_window:
+    inside_if_days_left_lt_avg_daysahead: true
+
+  # Restrizioni vs LOS (L3)
+  los_mismatch:
+    short_stay_nights_max: 3        # "soggiorno corto" = 1..3 notti
+    short_stay_share_flag: 0.40     # se ricerche short-stay / totali >= 40% E MinLOS le taglia => flag
+    # MinLOS che "taglia": MinLOS > short_stay_nights_max su quelle date
+
+  # Parità OTA (L4)
+  ota_parity:
+    only_if_rate_match: true        # salta se rate match non attivo
+
+# ---------------------------------------------------------------------------
+# Passata mirata: quante date interrogare al massimo (controllo costi)
+# ---------------------------------------------------------------------------
+sampling:
+  max_priced_dates_chat: 6      # modalità chat
+  max_priced_dates_report: 14   # modalità report
+  always_include:
+    - weekend_in_period
+    - sold_out_edges          # notti adiacenti ai sold-out (per orphan night)
+    - one_soft_midweek        # baseline per il prezzo "piatto"
+
+# ---------------------------------------------------------------------------
+# Mapping hotel noti (nome -> Property ID SB). Se assente: chiedi il Property ID,
+# o risolvilo con booking_engine_get_accessible_properties.
+# ---------------------------------------------------------------------------
+known_hotels: {}
+
+# ---------------------------------------------------------------------------
+# Output
+# ---------------------------------------------------------------------------
+output:
+  default_mode: chat            # chat | report
+  brand: SimpleBooking
+  always_show_evidence_table: true
+  always_show_limits_block: true

@@ -1,0 +1,814 @@
+<meta charset="utf-8">
+<title>SimpleBooking · Reservation Insights — Domande di esempio</title>
+<!--
+  Changelog (interno — non visibile nella pagina)
+  v1.0 — 2026-08-28 — Prima versione distribuibile ai clienti: 64 domande, 12 categorie,
+  brandizzata SimpleBooking. Rimossi "Come leggere le risposte", "Cose da sapere prima di
+  iniziare" e "Le domande a cui risponde no" (contenuto per il team, non per l'albergatore).
+  Aggiunto copyright e numero di versione in fondo alla pagina.
+-->
+
+<style>
+  :root {
+    --navy:   #0f2e4d;
+    --navy2:  #1b4f7a;
+    --accent: #13a89e;
+    --ink:    #1f2a37;
+    --muted:  #64748b;
+    --line:   #e4e9f0;
+    --bg:     #f6f8fb;
+    --soft:   #f0f4f9;
+    --white:  #ffffff;
+    --shadow: 0 2px 14px rgba(15, 46, 77, .09);
+
+    --sans: Inter, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    --step--1: clamp(.78rem, .76rem + .08vw, .83rem);
+    --step-0:  clamp(.95rem, .92rem + .12vw, 1rem);
+    --step-1:  clamp(1.08rem, 1.02rem + .26vw, 1.22rem);
+    --step-2:  clamp(1.32rem, 1.2rem + .5vw, 1.65rem);
+    --step-3:  clamp(1.7rem, 1.4rem + 1.3vw, 2.5rem);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: var(--step-0);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; }
+
+  /* ── hero ─────────────────────────────────────────────── */
+  .hero {
+    background: linear-gradient(120deg, var(--navy), var(--navy2));
+    color: #fff;
+    padding: clamp(2rem, 1.4rem + 3vw, 3.4rem) clamp(1rem, .5rem + 3vw, 3rem);
+  }
+  .hero-inner { max-width: 1180px; margin: 0 auto; position: relative; }
+
+  .lang-switch { position: absolute; top: 0; right: 0; z-index: 2; }
+  .hero .switch {
+    background: rgba(255, 255, 255, .12);
+    border-color: rgba(255, 255, 255, .3);
+    box-shadow: none;
+  }
+  .hero .switch button { color: rgba(255, 255, 255, .78); }
+  .hero .switch button[aria-pressed="true"] { background: #fff; color: var(--navy); }
+  @media (max-width: 34rem) {
+    .lang-switch { position: static; margin-bottom: .9rem; }
+  }
+  .eyebrow {
+    font-size: var(--step--1);
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: #fff;
+    opacity: .8;
+    font-weight: 700;
+  }
+  .hero h1 {
+    font-size: var(--step-3);
+    line-height: 1.1;
+    letter-spacing: -.02em;
+    margin: .6rem 0 .5rem;
+    font-weight: 780;
+    text-wrap: balance;
+    max-width: 22ch;
+  }
+  .hero .lede {
+    margin: 0;
+    max-width: 62ch;
+    opacity: .92;
+    font-size: var(--step-1);
+    line-height: 1.55;
+    text-wrap: pretty;
+  }
+  .pills { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.1rem; }
+  .pill {
+    display: inline-block;
+    background: rgba(255, 255, 255, .14);
+    border: 1px solid rgba(255, 255, 255, .22);
+    border-radius: 20px;
+    padding: .3rem .85rem;
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+
+  .setup {
+    margin-top: 1.6rem;
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .22);
+    border-radius: 10px;
+    padding: 1.1rem 1.3rem;
+    display: grid;
+    gap: .7rem;
+    max-width: 78ch;
+    backdrop-filter: blur(2px);
+  }
+  .setup .label {
+    font-size: var(--step--1);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #fff;
+    opacity: .85;
+    font-weight: 700;
+  }
+  .setup p { margin: 0; opacity: .88; max-width: 62ch; font-size: var(--step--1); }
+
+  .qrow {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: .6rem;
+    align-items: start;
+    background: rgba(255, 255, 255, .1);
+    border-radius: 8px;
+    padding: .7rem .85rem;
+  }
+  .qtext {
+    font-family: var(--mono);
+    font-size: .875rem;
+    line-height: 1.55;
+    color: #fff;
+    min-width: 0;
+    overflow-wrap: break-word;
+  }
+
+  /* ── shell ────────────────────────────────────────────── */
+  .shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 1rem + 2vw, 2.75rem) clamp(1rem, .5rem + 3vw, 3rem) 0;
+    display: grid;
+    gap: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  }
+  @media (min-width: 62rem) {
+    .shell { grid-template-columns: 15.5rem 1fr; align-items: start; }
+  }
+  .outro-wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 clamp(1rem, .5rem + 3vw, 3rem) 4rem;
+  }
+  @media (min-width: 62rem) {
+    .outro-wrap { padding-left: calc(15.5rem + clamp(1.5rem, 1rem + 2vw, 2.5rem) + clamp(1rem, .5rem + 3vw, 3rem)); padding-right: clamp(1rem, .5rem + 3vw, 3rem); }
+  }
+
+  /* ── sidebar ──────────────────────────────────────────── */
+  .rail { display: grid; gap: 1.4rem; align-self: start; }
+  @media (min-width: 62rem) { .rail { position: sticky; top: 1.5rem; max-height: calc(100vh - 3rem); overflow-y: auto; } }
+  .switch {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    overflow: hidden;
+    background: var(--white);
+    width: fit-content;
+    box-shadow: var(--shadow);
+  }
+  .switch button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: .04em;
+    padding: .4rem .9rem;
+    cursor: pointer;
+  }
+  .switch button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+
+  nav.catnav ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .1rem; }
+  nav.catnav a {
+    display: flex;
+    gap: .55rem;
+    align-items: baseline;
+    padding: .35rem .55rem;
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: var(--step--1);
+    line-height: 1.35;
+  }
+  nav.catnav a:hover { background: var(--soft); color: var(--navy); }
+  nav.catnav a .n { font-family: var(--mono); color: var(--accent); font-size: .72rem; font-weight: 700; }
+  .rail-title {
+    font-size: var(--step--1);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: .5rem;
+  }
+
+  /* ── categories ───────────────────────────────────────── */
+  .cats { display: grid; gap: 1.75rem; min-width: 0; }
+  .cat {
+    display: grid;
+    gap: .8rem;
+    scroll-margin-top: 1.2rem;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 1.4rem 1.5rem 1.6rem;
+  }
+  .cat-head { display: grid; gap: .3rem; border-bottom: 1px solid var(--line); padding-bottom: .7rem; }
+  .cat-head .kicker { font-size: var(--step--1); font-weight: 700; color: var(--accent); letter-spacing: .04em; }
+  .cat-head h2 {
+    margin: 0;
+    font-size: var(--step-2);
+    letter-spacing: -.01em;
+    line-height: 1.2;
+    font-weight: 720;
+    color: var(--navy);
+    text-wrap: balance;
+  }
+  .cat-head .why { margin: 0; color: var(--muted); max-width: 68ch; text-wrap: pretty; }
+
+  ol.qs { list-style: none; margin: 0; padding: 0; display: grid; gap: .15rem; }
+  li.q { display: grid; gap: .35rem; padding: .35rem 0; border-top: 1px solid var(--soft); }
+  li.q:first-child { border-top: none; }
+  .qgrid {
+    display: grid;
+    grid-template-columns: 2rem 1fr auto;
+    gap: .5rem;
+    align-items: start;
+    padding-top: .35rem;
+  }
+  .qnum {
+    font-family: var(--mono);
+    font-size: .78rem;
+    color: var(--accent);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    padding-top: .28rem;
+    text-align: right;
+  }
+  .qtext2 {
+    font-size: .93rem;
+    line-height: 1.55;
+    color: var(--ink);
+    min-width: 0;
+    overflow-wrap: break-word;
+  }
+  .copy {
+    appearance: none;
+    border: 1px solid var(--line);
+    background: var(--soft);
+    color: var(--muted);
+    font: inherit;
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: .3rem .65rem;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .12s ease, color .12s ease, border-color .12s ease;
+  }
+  .copy:hover { border-color: var(--accent); color: var(--accent); background: #fff; }
+  .copy[data-done="1"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .fu {
+    grid-column: 2 / -1;
+    display: grid;
+    gap: .3rem;
+    margin: .1rem 0 .2rem;
+  }
+  .fu-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: .5rem;
+    align-items: start;
+    border-left: 2px solid var(--line);
+    padding: .1rem 0 .1rem .65rem;
+  }
+  .fu-item .t {
+    font-size: .84rem;
+    color: var(--muted);
+    line-height: 1.5;
+    min-width: 0;
+    overflow-wrap: break-word;
+  }
+  .fu-item .t::before {
+    content: attr(data-tag);
+    display: block;
+    font-size: .66rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: .1rem;
+  }
+  .fu-item .copy { font-size: .64rem; padding: .22rem .5rem; }
+
+  /* ── outro ────────────────────────────────────────────── */
+  .outro { border-top: 1px solid var(--line); padding-top: 2rem; margin-top: .5rem; }
+  .foot-block {
+    display: grid;
+    gap: .5rem;
+  }
+  .foot-brand { font-size: .95rem; color: var(--navy); }
+  .foot-brand b { color: var(--navy); }
+  .foot-note { color: var(--muted); font-size: var(--step--1); max-width: 72ch; }
+  .foot-meta { color: var(--muted); font-size: .78rem; margin: .2rem 0 0; }
+
+  code {
+    font-family: var(--mono);
+    font-size: .86em;
+    background: var(--soft);
+    padding: .08em .32em;
+    border-radius: 2px;
+  }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="lang-switch">
+      <div class="switch" role="group">
+        <button type="button" data-lang="it" aria-pressed="true">IT</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </div>
+
+    <div class="eyebrow" data-t="eyebrow"></div>
+    <h1 data-t="title"></h1>
+    <p class="lede" data-t="lede"></p>
+    <div class="pills">
+      <span class="pill" data-t="pillCount"></span>
+      <span class="pill" data-t="pillCats"></span>
+      <span class="pill" data-t="pillSource"></span>
+    </div>
+
+    <div class="setup">
+      <div class="label" data-t="setupLabel"></div>
+      <div class="qrow">
+        <div class="qtext" data-t="setupPrompt"></div>
+        <button class="copy" data-copy="setupPrompt" data-t-label="copy"></button>
+      </div>
+      <p data-t="setupNote"></p>
+    </div>
+  </div>
+</div>
+
+<div class="shell">
+
+  <aside class="rail">
+    <nav class="catnav">
+      <div class="rail-title" data-t="indexLabel"></div>
+      <ol id="index"></ol>
+    </nav>
+  </aside>
+
+  <main class="cats" id="cats"></main>
+
+</div>
+
+<div class="outro-wrap">
+  <footer class="outro">
+    <div class="foot-block">
+      <div class="foot-brand"><b style="color:#0f2e4d">Simple</b>Booking · Reservation Insights</div>
+      <p class="foot-note" data-t="foot"></p>
+      <p class="foot-meta"><span data-t="version"></span> · <span data-t="copyright"></span></p>
+    </div>
+  </footer>
+</div>
+
+<script>
+const DATA = {
+  it: {
+    eyebrow: "SimpleBooking · Reservation Insights",
+    title: "64 domande da fare al tuo Back Office",
+    lede: "Il tuo assistente AI, collegato al Back Office SimpleBooking, risponde a domande dirette sulle tue prenotazioni — come le faresti a un collega. Qui trovi 64 esempi, organizzati per argomento, pronti da copiare e incollare.",
+    pillCount: "64 domande",
+    pillCats: "12 categorie",
+    pillSource: "Simple Booking Back Office",
+    setupLabel: "Da dire per primo",
+    setupPrompt: "Lavoriamo su {{NOME HOTEL}}, property {{PROPERTY_ID}}. Per tutte le domande che seguono usa questa struttura senza chiedermela di nuovo. Se una domanda richiede un periodo: quando non è chiaro né deducibile dal contesto, chiedimelo prima di rispondere invece di tirarlo a caso; se invece un default ragionevole esiste, usalo pure, ma dichiara sempre nella risposta quale periodo hai usato.",
+    setupNote: "Sostituisci i due segnaposto con la tua struttura — se non conosci il Property ID puoi lasciarlo vuoto, te lo chiederà o lo cercherà da solo. Da qui in poi nessuna delle domande dovrà ripetere la property.",
+    indexLabel: "Categorie",
+    copy: "Copia",
+    copied: "Copiato",
+    followTag: "Poi puoi chiedere",
+    foot: "Questo catalogo accompagna l'attivazione della skill Reservation Insights e del connettore MCP sul tuo Back Office SimpleBooking. Le risposte che riceverai useranno sempre i dati della tua struttura — quelli qui sopra sono solo esempi di domanda. Per attivare l'assistente o avere supporto, contatta il tuo referente SimpleBooking.",
+    version: "Versione 1.0 — 28 agosto 2026",
+    copyright: "© 2025-2026 SimpleBooking — Zucchetti Group. Tutti i diritti riservati.",
+    cats: [
+      {
+        t: "Andamento e pace",
+        why: "La domanda che ti fai ogni lunedì mattina: si può fare in una riga, e la risposta arriva con il confronto giusto, non con l'ultimo consuntivo disponibile.",
+        qs: [
+          { n: 1, q: "Come sta andando settembre? Siamo avanti o indietro rispetto all'anno scorso?", fu: ["E se guardo solo il diretto, il confronto cambia?", "Quanto mi manca per chiudere il mese come l'anno scorso?"] },
+          { n: 2, q: "Come si confronta l'on-the-books dei prossimi sei mesi con lo stesso periodo dell'anno scorso, mese per mese?", fu: ["Quale singolo mese è più indietro rispetto all'anno scorso?"] },
+          { n: 3, q: "Quante prenotazioni sono entrate questa settimana, e quanto valgono?" },
+          { n: 4, q: "Fammi vedere il pick-up giorno per giorno degli ultimi 30 giorni." },
+          { n: 5, q: "Quanto ho già in casa per l'ultimo trimestre dell'anno?" },
+          { n: 6, q: "Come si confronta il pick-up di questo mese con lo stesso mese dell'anno scorso?" },
+          { n: 7, q: "Qual è l'andamento mensile del fatturato camere degli ultimi 12 mesi?" }
+        ]
+      },
+      {
+        t: "Diretto vs Intermediato",
+        why: "Prima di guardare il singolo portale, la domanda che conta di più è quanto pesa il diretto sul totale — e se rende davvero di più.",
+        qs: [
+          { n: 8, q: "Quanto vale il diretto rispetto alle OTA a settembre?", fu: ["Scomponi il diretto: quanto viene dal sito e quanto inserito a mano?"] },
+          { n: 9, q: "Il diretto è davvero più redditizio, o vende solo camere migliori?", fu: ["E se confronto a parità di tipologia e di periodo di soggiorno?"] },
+          { n: 10, q: "Come è cambiato il mix diretto/intermediato negli ultimi dodici mesi?" }
+        ]
+      },
+      {
+        t: "Portali e canali indiretti",
+        why: "Il dettaglio per singola OTA e GDS: volume, costo e redditività netta, portale per portale.",
+        qs: [
+          { n: 11, q: "Quanto mi costano davvero i portali?", fu: ["Quali portali non mi trasmettono la commissione?"] },
+          { n: 12, q: "Quali portali mi portano più volume, e con che ADR ciascuno?", fu: ["Ordinali per fatturato invece che per numero di prenotazioni."] },
+          { n: 13, q: "Qual è il mix reale delle OTA, con i nomi leggibili invece dei codici canale?" },
+          { n: 14, q: "Quanta parte del fatturato passa da Booking, e quanta da Expedia?" }
+        ]
+      },
+      {
+        t: "Tracciamento del diretto",
+        why: "Il diretto non è un blocco unico: sito, app, staff e canali tracciati rispondono a domande diverse.",
+        qs: [
+          { n: 15, q: "Come si distribuisce il mio diretto fra sito, mobile, inserimento manuale e link tracciati?" },
+          { n: 16, q: "Quanto pesano le prenotazioni inserite a mano dallo staff?" },
+          { n: 17, q: "Quanto del mio diretto arriva dal metasearch (Google Hotel Ads, Trivago) tracciato tramite link?" },
+          { n: 18, q: "Quante prenotazioni dirette mi ha portato l'assistente AI del sito?" }
+        ]
+      },
+      {
+        t: "Camere, tariffe e pacchetti",
+        why: "Cosa vendi davvero, a quale prezzo, e quali classifiche di camera, tariffa, offerta e pacchetto contano.",
+        qs: [
+          { n: 19, q: "Quale tipologia di camera mi rende di più, e che quota di fatturato genera ciascuna?", fu: ["E sul solo weekend?"] },
+          { n: 20, q: "Quanto è ampia la forbice di prezzo su ogni tipologia?", fu: ["Su quale tipologia sto scontando di più?"] },
+          { n: 21, q: "Su quali tariffe si concentra il fatturato?" },
+          { n: 22, q: "Quali offerte stanno funzionando, e quali no?" },
+          { n: 23, q: "Quali pacchetti vendo davvero?" },
+          { n: 24, q: "Quanto vendo a listino, quanto in offerta e quanto a pacchetto?" },
+          { n: 25, q: "Qual è il mio ADR medio a settembre, e come si confronta con l'anno scorso?" }
+        ]
+      },
+      {
+        t: "Comportamento di prenotazione",
+        why: "Quando e come comprano i tuoi ospiti — con una trappola da conoscere sui periodi futuri.",
+        qs: [
+          { n: 26, q: "Con quanto anticipo vendo?", fu: ["Rifallo solo sui mesi già conclusi."] },
+          { n: 27, q: "A che ora del giorno entrano le prenotazioni?", fu: ["E distinguendo diretto da OTA?"] },
+          { n: 28, q: "In quali giorni della settimana ricevo più prenotazioni?", fu: ["Cambia se guardo solo il diretto?"] },
+          { n: 29, q: "Quanta parte delle prenotazioni arriva sotto data?" },
+          { n: 30, q: "Che permanenza media vendo? Ha senso un minimum stay sul weekend?", fu: ["Quante prenotazioni perderei con un minimum stay di due notti?"] },
+          { n: 31, q: "Quali notti del mese hanno più soggiorni di una notte sola, e varrebbe la pena chiuderle ai nuovi arrivi?", fu: ["Quante notti risparmierei imponendo un MinLOS solo su quelle date?"] },
+          { n: 32, q: "L'anticipo di prenotazione è diverso fra diretto e OTA?" },
+          { n: 33, q: "Quante notti vendo in media per prenotazione, e quante camere?" },
+          { n: 34, q: "Come si distribuiscono le prenotazioni fra soggiorni brevi e lunghi?" }
+        ]
+      },
+      {
+        t: "Cancellazioni",
+        why: "Per calcolare un tasso di cancellazione servono sia le prenotazioni attive sia quelle cancellate.",
+        qs: [
+          { n: 35, q: "Chi mi cancella, e quanto tardi?", fu: ["Le cancellazioni sono concentrate su qualche portale in particolare?"] },
+          { n: 36, q: "Qual è il mio tasso di cancellazione, canale per canale?" },
+          { n: 37, q: "Quanto revenue ho perso per cancellazioni quest'anno, rispetto all'anno scorso?", fu: ["È concentrato su un canale o una tariffa in particolare?"] },
+          { n: 38, q: "Quanto tempo passa fra la prenotazione e la cancellazione?" },
+          { n: 39, q: "Quante cancellazioni arrivano a meno di sette giorni dall'arrivo?" },
+          { n: 40, q: "Le tariffe non rimborsabili mi cancellano meno?" }
+        ]
+      },
+      {
+        t: "I miei ospiti",
+        why: "Chi prenota, da dove arriva, e come si comporta rispetto al resto della clientela.",
+        qs: [
+          { n: 41, q: "Quante prenotazioni ho con bambini, e quanto valgono rispetto alle altre?", fu: ["Le famiglie prenotano con più anticipo?"] },
+          { n: 42, q: "Da quali mercati arrivano i miei ospiti?", fu: ["Rifallo sul solo canale diretto, e dimmi la copertura del dato."] },
+          { n: 43, q: "Vendo più a coppie o a famiglie?" },
+          { n: 44, q: "Quante prenotazioni multi-camera ho, e che peso hanno sul fatturato?" },
+          { n: 45, q: "Quanti ospiti in media per prenotazione?" },
+          { n: 46, q: "I mercati esteri comprano tipologie diverse dagli italiani?" },
+          { n: 47, q: "Come è cambiata la composizione dei mercati rispetto all'anno scorso?" }
+        ]
+      },
+      {
+        t: "Servizi extra",
+        why: "Il margine quasi puro che quasi nessuno guarda: cosa vendi oltre la camera.",
+        qs: [
+          { n: 48, q: "Quanto vendo oltre la camera?", fu: ["Su che quota del fatturato diretto siamo?"] },
+          { n: 49, q: "Quali servizi accessori vendo di più, e quali fruttano di più?", fu: ["Quali si vendono in tanti ma valgono poco, e quali il contrario?"] },
+          { n: 50, q: "Il servizio più prenotato è anche il più redditizio, o sono due classifiche diverse?" },
+          { n: 51, q: "La penetrazione dei servizi è cresciuta rispetto all'anno scorso?" }
+        ]
+      },
+      {
+        t: "Pagamenti e incassi",
+        why: "Quanto del tuo venduto ha una garanzia reale, e quanto è già stato effettivamente incassato.",
+        qs: [
+          { n: 52, q: "Quanto sono garantite le mie prenotazioni? Quanto è stato effettivamente incassato?", fu: ["Se il numero è vicino a zero, cosa significa?"] },
+          { n: 53, q: "Quali metodi di pagamento usano i miei ospiti diretti?" },
+          { n: 54, q: "Quante prenotazioni arrivano senza alcun metodo di pagamento registrato?", fu: ["Quante di quelle sono in arrivo nei prossimi 30 giorni?"] },
+          { n: 55, q: "Quante prenotazioni richiedono riconciliazione manuale del bonifico, e quanto valgono?", fu: ["Vale la pena spingerle verso il gateway invece del bonifico?"] },
+          { n: 56, q: "Quale payment gateway processa le mie prenotazioni, e quanto incassa ciascuno?", fu: ["Coincide con l'importo incassato totale della domanda 52?"] }
+        ]
+      },
+      {
+        t: "Oggi e domani",
+        why: "Le domande del front office, quelle che si fanno ogni mattina.",
+        qs: [
+          { n: 57, q: "Quanti arrivi ho domani?" },
+          { n: 58, q: "Quante persone ho in casa stanotte?" },
+          { n: 59, q: "Quali sono le giornate più cariche del mese prossimo?", fu: ["Quali di quelle giornate hanno ancora tariffe basse?"] },
+          { n: 60, q: "Quante partenze ho questo weekend?" }
+        ]
+      },
+      {
+        t: "Più strutture",
+        why: "Se gestisci più di un hotel — gruppo, catena o portafoglio in consulenza — qui confronti le strutture fra loro.",
+        qs: [
+          { n: 61, q: "Confrontami con un'altra struttura del gruppo: quota diretta, ADR e permanenza.", fu: ["Confronta in percentuale invece che in valore assoluto."] },
+          { n: 62, q: "Quale struttura del gruppo ha la quota diretta più alta?" },
+          { n: 63, q: "Quali strutture del portafoglio stanno vendendo meglio o peggio rispetto allo stesso periodo dell'anno scorso?" },
+          { n: 64, q: "Quale struttura ha il costo di intermediazione (commissioni OTA) più alto?" }
+        ]
+      }
+    ]
+  },
+
+  en: {
+    eyebrow: "SimpleBooking · Reservation Insights",
+    title: "64 questions to ask your Back Office",
+    lede: "Your AI assistant, connected to the SimpleBooking Back Office, answers direct questions about your bookings — the way you'd ask a colleague. Here are 64 examples, organized by topic, ready to copy and paste.",
+    pillCount: "64 questions",
+    pillCats: "12 categories",
+    pillSource: "Simple Booking Back Office",
+    setupLabel: "Say this first",
+    setupPrompt: "We are working on {{HOTEL NAME}}, property {{PROPERTY_ID}}. Use this property for every question that follows, without asking me again. If a question needs a period: when it is not clear and cannot be inferred from context, ask me before answering instead of guessing; if a reasonable default exists, go ahead and use it, but always state in the answer which period you used.",
+    setupNote: "Replace the two placeholders with your property — if you do not know the Property ID you can leave it blank, the assistant will ask or look it up itself. From here on, none of the questions repeat the property.",
+    indexLabel: "Categories",
+    copy: "Copy",
+    copied: "Copied",
+    followTag: "Then you can ask",
+    foot: "This catalog comes with the activation of the Reservation Insights skill and the MCP connector on your SimpleBooking Back Office. The answers you get will always use your own property's data — the examples above are just the questions. To activate the assistant or get support, contact your SimpleBooking representative.",
+    version: "Version 1.0 — August 28, 2026",
+    copyright: "© 2025-2026 SimpleBooking — Zucchetti Group. All rights reserved.",
+    cats: [
+      {
+        t: "Pace and performance",
+        why: "The question you ask yourself every Monday morning: you can ask it in one line, and the answer comes with the right comparison, not last quarter's report.",
+        qs: [
+          { n: 1, q: "How is September going? Are we ahead or behind last year?", fu: ["Does the comparison change if I look at direct only?", "How much do I still need to close the month like last year?"] },
+          { n: 2, q: "How does the on-the-books for the next six months compare with the same period last year, month by month?", fu: ["Which single month is furthest behind last year?"] },
+          { n: 3, q: "How many bookings came in this week, and what are they worth?" },
+          { n: 4, q: "Show me the pick-up day by day over the last 30 days." },
+          { n: 5, q: "How much do I already hold for the last quarter of the year?" },
+          { n: 6, q: "How does this month's pick-up compare with the same month last year?" },
+          { n: 7, q: "What is the monthly trend of room revenue over the last 12 months?" }
+        ]
+      },
+      {
+        t: "Direct vs Intermediated",
+        why: "Before looking at any single portal, the question that matters most is how much direct is worth overall — and whether it really pays off more.",
+        qs: [
+          { n: 8, q: "What is direct worth compared with the OTAs in September?", fu: ["Break down direct: how much comes from the website and how much was keyed in by hand?"] },
+          { n: 9, q: "Is direct really more profitable, or does it just sell better rooms?", fu: ["What if I compare like for like, same room type and same stay period?"] },
+          { n: 10, q: "How has the direct/intermediated mix changed over the last twelve months?" }
+        ]
+      },
+      {
+        t: "Portals and indirect channels",
+        why: "The breakdown for each OTA and GDS: volume, cost and net profitability, portal by portal.",
+        qs: [
+          { n: 11, q: "What do the portals actually cost me?", fu: ["Which portals do not transmit their commission?"] },
+          { n: 12, q: "Which portals bring me the most volume, and at what ADR each?", fu: ["Rank them by revenue instead of by number of bookings."] },
+          { n: 13, q: "What is the real OTA mix, with readable names instead of channel codes?" },
+          { n: 14, q: "How much revenue comes through Booking, and how much through Expedia?" }
+        ]
+      },
+      {
+        t: "Tracking your direct channel",
+        why: "Direct isn't one single block: website, app, staff and tracked links each answer a different question.",
+        qs: [
+          { n: 15, q: "How is my direct channel split between website, mobile, manual entry and tracked links?" },
+          { n: 16, q: "How much weight do bookings keyed in by staff carry?" },
+          { n: 17, q: "How much of my direct comes from metasearch (Google Hotel Ads, Trivago) tracked through a link?" },
+          { n: 18, q: "How many direct bookings has the website's AI assistant brought me?" }
+        ]
+      },
+      {
+        t: "Rooms, rates and packages",
+        why: "What you actually sell, at what price, and which room, rate, offer and package rankings matter.",
+        qs: [
+          { n: 19, q: "Which room type earns me the most, and what share of revenue does each one carry?", fu: ["And on weekends only?"] },
+          { n: 20, q: "How wide is the price range on each room type?", fu: ["Which room type am I discounting the most?"] },
+          { n: 21, q: "Which rate plans is my revenue concentrated on?" },
+          { n: 22, q: "Which offers are working, and which are not?" },
+          { n: 23, q: "Which packages do I actually sell?" },
+          { n: 24, q: "How much do I sell at rack rate, how much on offer and how much as a package?" },
+          { n: 25, q: "What is my average ADR in September, and how does it compare with last year?" }
+        ]
+      },
+      {
+        t: "Booking behaviour",
+        why: "When and how your guests buy — with one trap worth knowing about future periods.",
+        qs: [
+          { n: 26, q: "How far ahead do I sell?", fu: ["Run it again on closed months only."] },
+          { n: 27, q: "At what time of day do bookings come in?", fu: ["And split by direct versus OTA?"] },
+          { n: 28, q: "Which days of the week do I receive the most bookings on?", fu: ["Does it change if I look at direct only?"] },
+          { n: 29, q: "How much of my business arrives last minute?" },
+          { n: 30, q: "What length of stay am I selling? Does a weekend minimum stay make sense?", fu: ["How many bookings would I lose with a two-night minimum stay?"] },
+          { n: 31, q: "Which nights of the month have the most single-night stays, and would it be worth closing them to new arrivals?", fu: ["How many nights would I save by imposing a MinLOS just on those dates?"] },
+          { n: 32, q: "Is lead time different between direct and OTA?" },
+          { n: 33, q: "How many nights do I sell per booking on average, and how many rooms?" },
+          { n: 34, q: "How are bookings distributed between short and long stays?" }
+        ]
+      },
+      {
+        t: "Cancellations",
+        why: "To compute a cancellation rate you need both active and cancelled bookings.",
+        qs: [
+          { n: 35, q: "Who cancels on me, and how late?", fu: ["Are cancellations concentrated on any particular portal?"] },
+          { n: 36, q: "What is my cancellation rate, channel by channel?" },
+          { n: 37, q: "How much revenue have I lost to cancellations this year, compared with last year?", fu: ["Is it concentrated on a particular channel or rate plan?"] },
+          { n: 38, q: "How long passes between booking and cancellation?" },
+          { n: 39, q: "How many cancellations arrive less than seven days before arrival?" },
+          { n: 40, q: "Do non-refundable rates cancel less?" }
+        ]
+      },
+      {
+        t: "Your guests",
+        why: "Who books, where they come from, and how they behave compared with the rest.",
+        qs: [
+          { n: 41, q: "How many bookings include children, and what are they worth compared with the rest?", fu: ["Do families book further ahead?"] },
+          { n: 42, q: "Which source markets do my guests come from?", fu: ["Run it on direct only, and tell me the coverage of the field."] },
+          { n: 43, q: "Do I sell more to couples or to families?" },
+          { n: 44, q: "How many multi-room bookings do I have, and what share of revenue do they carry?" },
+          { n: 45, q: "How many guests per booking on average?" },
+          { n: 46, q: "Do foreign markets buy different room types than Italians?" },
+          { n: 47, q: "How has the market mix changed compared with last year?" }
+        ]
+      },
+      {
+        t: "Ancillary services",
+        why: "The near-pure margin almost nobody looks at: what you sell beyond the room.",
+        qs: [
+          { n: 48, q: "How much do I sell beyond the room?", fu: ["What share of direct revenue is that?"] },
+          { n: 49, q: "Which ancillary services sell the most, and which earn the most?", fu: ["Which sell in high volume but low value, and which the other way round?"] },
+          { n: 50, q: "Is the most-booked service also the most profitable one, or are they two different rankings?" },
+          { n: 51, q: "Has ancillary penetration grown compared with last year?" }
+        ]
+      },
+      {
+        t: "Payments and collections",
+        why: "How much of what you sell carries a real guarantee, and how much has actually been collected.",
+        qs: [
+          { n: 52, q: "How well secured are my bookings? How much has actually been collected?", fu: ["If this comes back near zero, what does that mean?"] },
+          { n: 53, q: "Which payment methods do my direct guests use?" },
+          { n: 54, q: "How many bookings arrive with no payment method recorded at all?", fu: ["How many of those are arriving in the next 30 days?"] },
+          { n: 55, q: "How many bookings require manual bank-transfer reconciliation, and what are they worth?", fu: ["Is it worth pushing them toward the gateway instead of a transfer?"] },
+          { n: 56, q: "Which payment gateway processes my bookings, and how much does each collect?", fu: ["Does it match the total collected amount from question 52?"] }
+        ]
+      },
+      {
+        t: "Today and tomorrow",
+        why: "The front-office questions, the ones asked every morning.",
+        qs: [
+          { n: 57, q: "How many arrivals do I have tomorrow?" },
+          { n: 58, q: "How many people do I have in house tonight?" },
+          { n: 59, q: "Which are the busiest days next month?", fu: ["Which of those days still have low rates?"] },
+          { n: 60, q: "How many departures do I have this weekend?" }
+        ]
+      },
+      {
+        t: "Multiple properties",
+        why: "If you manage more than one hotel — a group, a chain, or a portfolio you consult for — here you compare properties against each other.",
+        qs: [
+          { n: 61, q: "Compare me with another property in the group: direct share, ADR and length of stay.", fu: ["Compare in percentage terms instead of absolute values."] },
+          { n: 62, q: "Which property in the group has the highest direct share?" },
+          { n: 63, q: "Which properties in the portfolio are selling better or worse than the same period last year?" },
+          { n: 64, q: "Which property has the highest cost of intermediation (OTA commission)?" }
+        ]
+      }
+    ]
+  }
+};
+
+let lang = "it";
+
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+
+function copyButton(getText, cls) {
+  const b = el("button", cls || "copy", DATA[lang].copy);
+  b.type = "button";
+  b.addEventListener("click", async () => {
+    const text = getText();
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (e) {
+      const ta = el("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+    }
+    b.textContent = DATA[lang].copied;
+    b.dataset.done = "1";
+    setTimeout(() => { b.textContent = DATA[lang].copy; delete b.dataset.done; }, 1400);
+  });
+  return b;
+}
+
+function render() {
+  const d = DATA[lang];
+  document.documentElement.lang = lang;
+
+  document.querySelectorAll("[data-t]").forEach(n => { n.textContent = d[n.dataset.t]; });
+  document.querySelectorAll("[data-t-label]").forEach(n => { n.textContent = d[n.dataset["tLabel"]]; });
+
+  const setupBtn = document.querySelector('[data-copy="setupPrompt"]');
+  const fresh = copyButton(() => DATA[lang].setupPrompt);
+  setupBtn.replaceWith(fresh);
+  fresh.dataset.copy = "setupPrompt";
+
+  const cats = document.getElementById("cats");
+  const index = document.getElementById("index");
+  cats.replaceChildren();
+  index.replaceChildren();
+
+  d.cats.forEach((c, ci) => {
+    const id = "cat-" + ci;
+
+    const li = el("li");
+    const a = el("a");
+    a.href = "#" + id;
+    a.appendChild(el("span", "n", String(ci + 1)));
+    a.appendChild(el("span", null, c.t));
+    li.appendChild(a);
+    index.appendChild(li);
+
+    const sec = el("section", "cat");
+    sec.id = id;
+
+    const head = el("div", "cat-head");
+    head.appendChild(el("div", "kicker", String(ci + 1).padStart(2, "0")));
+    head.appendChild(el("h2", null, c.t));
+    head.appendChild(el("p", "why", c.why));
+    sec.appendChild(head);
+
+    const ol = el("ol", "qs");
+    c.qs.forEach(item => {
+      const q = el("li", "q");
+      const row = el("div", "qgrid");
+      row.appendChild(el("div", "qnum", String(item.n)));
+      row.appendChild(el("div", "qtext2", item.q));
+      row.appendChild(copyButton(() => item.q));
+      q.appendChild(row);
+
+      if (item.fu && item.fu.length) {
+        const fu = el("div", "fu");
+        item.fu.forEach(f => {
+          const w = el("div", "fu-item");
+          const t = el("div", "t", f);
+          t.dataset.tag = d.followTag;
+          w.appendChild(t);
+          w.appendChild(copyButton(() => f));
+          fu.appendChild(w);
+        });
+        q.appendChild(fu);
+      }
+      ol.appendChild(q);
+    });
+    sec.appendChild(ol);
+
+    cats.appendChild(sec);
+  });
+
+  document.querySelectorAll("[data-lang]").forEach(b => {
+    b.setAttribute("aria-pressed", String(b.dataset.lang === lang));
+  });
+}
+
+document.querySelectorAll("[data-lang]").forEach(b => {
+  b.addEventListener("click", () => { lang = b.dataset.lang; render(); });
+});
+
+render();
+</script>
