@@ -65,11 +65,11 @@ indirect bookings.
 A terms facet, root-scope and additive like `Source` — not nested. Bucket keys resolve to a
 readable `Name (Code)`, e.g. `Booking.com (XML) (BOOKINGXML)`.
 
-**Coverage confirmed live (2026-08-27, property 4233, 2024-09 to 2026-08):** 100% on
-`ChannelType = Indirect` (878 matched, 878 bucketed), **0% on `ChannelType = Direct`** (3,923
-matched, 0 bucketed). On indirect bookings its counts are identical, one for one, to `Source`
-(`BOOKINGXML` 696 = 696, `EXPEDIA` 169 = 169, `VISITRIMINI` 13 = 13) — the only difference is
-cosmetic, a readable brand name instead of a code.
+**Coverage is not guaranteed on direct bookings.** On a property tested end to end,
+`ChannelType = Indirect` bookings had 100% coverage, while `ChannelType = Direct`
+bookings had 0% — the field is simply not populated on the direct side. On indirect
+bookings its counts matched `Source` one for one (same OTAs, same counts), the only
+difference being a readable brand name instead of a code.
 
 **Prefer it for an OTA mix that will be read by someone**, since it needs no normalization or
 code-to-brand lookup. `Source` remains the only field with content on direct, and the one to

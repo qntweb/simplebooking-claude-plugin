@@ -4,142 +4,154 @@ metadata:
   author: Sergio Farinelli
   organization: QNT — SimpleBooking — Zucchetti Group
 description: >
-  Diagnostico che incrocia la domanda d'area del booking engine con le prenotazioni reali
-  del Back Office: dice se una struttura sta catturando la domanda della propria
-  destinazione o la sta lasciando andare. Orchestra sb-revenue-lens (domanda,
-  disponibilità, restrizioni, parità OTA) e sb-reservation-insights (pickup, mix canale,
-  mercati, anticipo reali) sullo stesso periodo, senza ricalcolarne la logica: possiede
-  solo il confronto fra le due risposte e il caveat che la domanda è di destinazione, non
-  di struttura. Usa SEMPRE per: "sto seguendo il mercato", "ho domanda ma non vendo", "il
-  mio catalogo intercetta la domanda", "chi cerca vs chi prenota", "apro troppo tardi le
-  vendite", "quale struttura del gruppo cattura meglio la domanda". NON usare per: una
-  metrica reale isolata (sb-reservation-insights); domanda/disponibilità/prezzo senza le
-  vendite reali (sb-revenue-lens); il brief settimanale fisso (sb-monday-brief);
-  provenienza del diretto (sb-direct-attribution).
+  Diagnostic that cross-references the booking engine's area demand with actual
+  Back Office reservations: tells you whether a property is capturing its
+  destination's demand or letting it go. Orchestrates sb-revenue-lens (demand,
+  availability, restrictions, OTA parity) and sb-reservation-insights (pickup,
+  channel mix, markets, actual lead time) over the same period, without
+  recomputing their logic: it only owns the comparison between the two answers
+  and the caveat that demand is about the destination, not the property. Use
+  ALWAYS for: "am I keeping up with the market", "I have demand but I'm not
+  selling", "does my catalog intercept demand", "who searches vs who books",
+  "am I opening sales too late", "which property in the group captures demand
+  best". Do NOT use for: a single real metric in isolation
+  (sb-reservation-insights); demand/availability/price without actual sales
+  (sb-revenue-lens); the fixed weekly brief (sb-monday-brief); direct booking
+  provenance (sb-direct-attribution).
 ---
 
-# 🎯 sb-demand-capture — Diagnostico incrociato domanda × vendite reali
+# 🎯 sb-demand-capture — Cross-check of demand × actual sales
 
-## Panoramica
+## Overview
 
-`sb-revenue-lens` sa leggere la **domanda di mercato** (ricerche sul booking engine,
-disponibilità, restrizioni, prezzo). `sb-reservation-insights` sa leggere le **vendite
-reali** (pickup, mix canale, mercati, cancellazioni) dal Back Office. Nessuna delle due,
-da sola, può rispondere a "la domanda per le mie date c'è, ma io la sto vendendo?" — la
-prima non vede una singola prenotazione, la seconda non vede il mercato.
+`sb-revenue-lens` knows how to read **market demand** (booking engine
+searches, availability, restrictions, price). `sb-reservation-insights` knows
+how to read **actual sales** (pickup, channel mix, markets, cancellations)
+from the Back Office. Neither one, alone, can answer "the demand for my
+dates is there, but am I actually selling it?" — the first sees no single
+reservation, the second sees no market.
 
-`sb-demand-capture` esiste **solo** per rispondere a questa classe di domande: prende la
-stessa domanda dell'albergatore, la instrada a entrambe le skill sullo stesso periodo, e
-possiede **solo** la logica di confronto fra le due risposte.
+`sb-demand-capture` exists **only** to answer this class of question: it
+takes the hotelier's question, routes it to both skills over the same
+period, and owns **only** the comparison logic between the two answers.
 
-## Vincolo architetturale non negoziabile (come sb-monday-brief)
+## Non-negotiable architectural constraint (like sb-monday-brief)
 
-**Questa skill orchestra, non ricalcola.** Non chiama mai un tool MCP direttamente: ogni
-numero viene da un'invocazione agentica di `sb-revenue-lens` o di `sb-reservation-insights`,
-citata verbatim. Se un domani una delle due cambia una formula o una soglia, questa skill
-non deve essere toccata — eredita il cambiamento automaticamente, perché non ne possiede
-una copia.
+**This skill orchestrates, it does not recompute.** It never calls an MCP
+tool directly: every number comes from an agentic invocation of
+`sb-revenue-lens` or `sb-reservation-insights`, quoted verbatim. If one of
+the two changes a formula or a threshold tomorrow, this skill doesn't need
+to be touched — it inherits the change automatically, because it doesn't
+hold its own copy.
 
-Questa skill possiede solo: **il router delle 7 lenti incrociate, l'allineamento delle
-finestre temporali, l'aritmetica del confronto (delta/quota), le soglie di classificazione
-del gap, e il caveat destinazione-vs-struttura.**
+This skill owns only: **the router for the 7 cross-lenses, the alignment of
+the time windows, the comparison arithmetic (delta/share), the gap
+classification thresholds, and the destination-vs-property caveat.**
 
-## Relazione con sb-monday-brief — sovrapposizione dichiarata
+## Relationship with sb-monday-brief — declared overlap
 
-Il Detector 1 di `sb-monday-brief` ("opportunità mancate") già incrocia OTB/STLY con la
-domanda di destinazione IBE — è, di fatto, una versione ridotta della lente **X1** qui
-sotto, calcolata ogni lunedì con soglie fisse e un solo esito sì/no. Questa skill è la
-versione **on-demand, guidata dalla domanda dell'utente, su 7 lenti e periodi qualsiasi**.
-La sovrapposizione è voluta, non un difetto da correggere subito: non spostare qui la
-logica del Detector 1 finché quel detector resta l'unico validato su dati reali per
-l'alert settimanale. Se in futuro si consolidano, il Detector 1 dovrebbe richiamare X1 di
-questa skill invece di ricalcolare la propria versione — annotalo come debito tecnico, non
-farlo silenziosamente.
+`sb-monday-brief`'s Detector 1 ("missed opportunities") already cross-checks
+OTB/STLY against IBE destination demand — it is, in effect, a reduced version
+of lens **X1** below, computed every Monday with fixed thresholds and a
+single yes/no outcome. This skill is the **on-demand version, driven by the
+user's question, across 7 lenses and any period**. The overlap is
+intentional, not a defect to fix right away: don't move Detector 1's logic
+here as long as that detector remains the only one validated on real data for
+the weekly alert. If they consolidate in the future, Detector 1 should call
+this skill's X1 instead of recomputing its own version — flag it as technical
+debt, don't do it silently.
 
-## Le due fonti (mai duplicate qui)
+## The two sources (never duplicated here)
 
-| Fonte | Cosa fornisce | Come si invoca |
+| Source | What it provides | How to invoke it |
 |---|---|---|
-| `sb-revenue-lens` | Domanda d'area, disponibilità, restrizioni MinLOS/MaxLOS, parità OTA, posizionamento di segmento — lenti L1-L6 | Agentica: le poni la stessa domanda/periodo che porresti a un consulente, o nomini direttamente la lente (es. "usa la lente L3 su luglio") |
-| `sb-reservation-insights` | Pickup, on-the-books, mix canale, ADR reale per canale, mercati di provenienza, anticipo reale, cancellazioni — dal Back Office | Agentica: stessa logica, in linguaggio naturale, sullo stesso periodo |
+| `sb-revenue-lens` | Area demand, availability, MinLOS/MaxLOS restrictions, OTA parity, segment positioning — lenses L1-L6 | Agentic: ask it the same question/period you'd ask a consultant, or name the lens directly (e.g. "use lens L3 on July") |
+| `sb-reservation-insights` | Pickup, on-the-books, channel mix, actual ADR per channel, source markets, actual lead time, cancellations — from the Back Office | Agentic: same logic, in natural language, over the same period |
 
-Non risolvere tu il Property ID: passa lo stesso nome/ID a entrambe le invocazioni e lascia
-che ciascuna faccia la propria risoluzione (la usano già in modo affidabile, e gli ID sono
-condivisi fra i due MCP — non serve una terza risoluzione qui).
+Don't resolve the Property ID yourself: pass the same name/ID to both
+invocations and let each do its own resolution (they already do it
+reliably, and the IDs are shared between the two MCPs — no need for a third
+resolution here).
 
-## Prima di iniziare
+## Before starting
 
-Servono **hotel** e **periodo**, esattamente come per `sb-revenue-lens`. Se il periodo non
-è chiaro né deducibile dal contesto, chiedilo — non tirarlo a caso. Se esiste un default
-ragionevole (vedi `config/defaults.yaml:default_window`), usalo e dichiara sempre quale
-periodo hai usato.
+You need **hotel** and **period**, exactly as for `sb-revenue-lens`. If the
+period isn't clear or inferable from context, ask — don't guess it. If a
+reasonable default exists (see `config/defaults.yaml:default_window`), use it
+and always state which period you used.
 
-## Router delle 7 lenti incrociate
+## Router for the 7 cross-lenses
 
-Mappa la domanda dell'utente su una o più lenti. Se ambigua, chiedi con scelta multipla.
-Se l'utente non fa una domanda specifica ("guarda giugno"), esegui X1 (la più universale)
-e offri le altre.
+Map the user's question to one or more lenses. If ambiguous, ask with a
+multiple choice. If the user doesn't ask a specific question ("look at
+June"), run X1 (the most universal) and offer the others.
 
-| Trigger nella domanda | Lente |
+| Trigger in the question | Lens |
 |---|---|
-| "sto seguendo il mercato", "vendo abbastanza rispetto alla domanda", "domanda vs vendite" | **X1 — Pace comparativo** |
-| "ho domanda ma non vendo", "perché non converto", "cosa mi blocca" | **X2 — Freni alla conversione** |
-| "il mio prezzo tiene", "sto perdendo quota su un canale", "parità e vendite reali" | **X3 — Prezzo e parità realizzata** |
-| "i miei pacchetti coprono la domanda", "il catalogo intercetta il mercato" | **X4 — Prodotto vs domanda** |
-| "chi cerca vs chi prenota", "mercato scoperto", "segmento non intercettato" | **X5 — Mercati e segmenti** |
-| "apro troppo tardi/presto le vendite", "finestra di vendita vs mercato" | **X6 — Pacing** |
-| "quale struttura cattura meglio la domanda", "confronto portafoglio" | **X7 — Portafoglio** |
+| "am I keeping up with the market", "am I selling enough relative to demand", "demand vs sales" | **X1 — Comparative pace** |
+| "I have demand but I'm not selling", "why am I not converting", "what's blocking me" | **X2 — Conversion brakes** |
+| "is my price holding", "am I losing share on a channel", "parity and actual sales" | **X3 — Price and realized parity** |
+| "do my packages cover demand", "does the catalog intercept the market" | **X4 — Product vs demand** |
+| "who searches vs who books", "uncovered market", "segment not captured" | **X5 — Markets and segments** |
+| "am I opening/closing sales too late/early", "sales window vs market" | **X6 — Pacing** |
+| "which property captures demand best", "portfolio comparison" | **X7 — Portfolio** |
 
-Dettaglio di ciascuna lente (input, confronto, classificazione): `references/cross-lenses.md`.
-Quale invocazione esatta fare a ciascuna fonte, per ciascuna lente: `references/orchestration.md`.
+Detail of each lens (input, comparison, classification): `references/cross-lenses.md`.
+Exactly which call to make to each source, for each lens: `references/orchestration.md`.
 
 ## Workflow
 
-1. **Identifica hotel, periodo e lente** (router sopra).
-2. **Invoca `sb-revenue-lens`** con la domanda/lente pertinente sul periodo. Salva la
-   risposta (numeri della tabella evidenze inclusi) verbatim.
-3. **Invoca `sb-reservation-insights`** con la domanda equivalente sullo stesso periodo e,
-   dove possibile, sulla stessa granularità (settimanale — vedi "Allineamento delle
-   finestre" in `references/orchestration.md`). Salva la risposta verbatim.
-4. **Calcola il confronto** secondo la lente attivata. Scrivi i numeri in un JSON e lancia:
+1. **Identify hotel, period and lens** (router above).
+2. **Invoke `sb-revenue-lens`** with the relevant question/lens over the
+   period. Save the answer (including the evidence-table numbers) verbatim.
+3. **Invoke `sb-reservation-insights`** with the equivalent question over the
+   same period and, where possible, at the same granularity (weekly — see
+   "Window alignment" in `references/orchestration.md`). Save the answer
+   verbatim.
+4. **Compute the comparison** per the triggered lens. Write the numbers to a
+   JSON and run:
 
    ```bash
    python3 <skill-dir>/scripts/verify.py claims.json
    ```
 
-   Se esce non-zero, il confronto non va in risposta: correggilo o dichiara cosa non torna.
-5. **Rispondi**: fatto (i due numeri, la fonte di ciascuno) e classificazione (in linea /
-   da verificare / scostamento marcato) — mai la causa come certezza, solo come ipotesi da
-   verificare con l'albergatore. Dichiara sempre il caveat destinazione-vs-struttura quando
-   pertinente (quasi sempre, tranne X2 che è puramente meccanico).
-6. **Offri il report brandizzato**, se richiesto, riusando lo script di `sb-revenue-lens`
-   come base di layout (non scriverne uno nuovo da zero) — estensione futura, vedi sotto.
+   If it exits non-zero, the comparison doesn't go into the answer: fix it or
+   state what doesn't add up.
+5. **Answer**: the fact (the two numbers, each one's source) and the
+   classification (in line / to verify / marked deviation) — never the cause
+   as a certainty, only as a hypothesis to verify with the hotelier. Always
+   state the destination-vs-property caveat when relevant (almost always,
+   except X2 which is purely mechanical).
+6. **Offer the branded report**, if requested, reusing `sb-revenue-lens`'s
+   script as the layout base (don't write a new one from scratch) — a future
+   extension, see below.
 
-## Guardrail
+## Guardrails
 
-- **Non è consulenza prescrittiva.** Come `sb-revenue-lens`: mostra il confronto e 1-3
-  domande di verifica, non un "fai X".
-- **Cannibalizzazione — stessa regola di `sb-monday-brief`.** "Questo cliente avrebbe
-  prenotato comunque in diretto?" non è misurabile qui: non affermarlo mai.
-- **Il report va a un cliente.** Nel confronto multi-struttura (X7), nessun dato di altre
-  property se l'output è per un singolo hotel; il ranking è solo per chi gestisce l'intero
-  portafoglio (stessa regola di `sb-monday-brief`).
-- **Fatto vs inferenza sempre distinti**, come in `sb-revenue-lens`.
-- **Se una delle due fonti non è disponibile in sessione**, fermati e dichiaralo — non
-  stimare il lato mancante con un numero indovinato.
+- **Not prescriptive advice.** Like `sb-revenue-lens`: show the comparison and
+  1-3 verification questions, not a "do X".
+- **Cannibalization — same rule as `sb-monday-brief`.** "Would this guest have
+  booked direct anyway?" isn't measurable here: never assert it.
+- **The report goes to a customer.** In the multi-property comparison (X7),
+  no data from other properties if the output is for a single hotel; the
+  ranking is only for whoever manages the whole portfolio (same rule as
+  `sb-monday-brief`).
+- **Fact vs inference always kept distinct**, as in `sb-revenue-lens`.
+- **If one of the two sources isn't available in the session**, stop and
+  state it — don't estimate the missing side with a guessed number.
 
-## Estensioni future (non ancora implementate)
+## Future extensions (not yet implemented)
 
-- Report brandizzato HTML/PDF (riuso di `sb-revenue-lens/scripts/build_report.py` come base).
-- Validazione più ampia delle 7 lenti su altre property, periodi e configurazioni.
-- Eventuale consolidamento con il Detector 1 di `sb-monday-brief` (vedi sopra).
+- Branded HTML/PDF report (reusing `sb-revenue-lens/scripts/build_report.py` as a base).
+- Broader validation of the 7 lenses on other properties, periods and configurations.
+- Possible consolidation with `sb-monday-brief`'s Detector 1 (see above).
 
-## File di supporto
+## Supporting files
 
-| Percorso | Contenuto |
+| Path | Content |
 |---|---|
-| `config/defaults.yaml` | finestra di default, soglie di classificazione del gap |
-| `references/orchestration.md` | quale invocazione fare a ciascuna fonte, per ciascuna lente; allineamento delle finestre temporali |
-| `references/cross-lenses.md` | specifica formale delle 7 lenti incrociate: input, confronto, classificazione |
-| `scripts/verify.py` | ricalcola l'aritmetica del confronto (delta, quota, intersezione) prima che un numero vada in risposta |
-| `templates/sb-demand-capture-example-questions.html` | catalogo di 23 domande di esempio in 7 categorie, per presentare la skill a un cliente |
+| `config/defaults.yaml` | default window, gap classification thresholds |
+| `references/orchestration.md` | exactly which call to make to each source, for each lens; time-window alignment |
+| `references/cross-lenses.md` | formal spec of the 7 cross-lenses: input, comparison, classification |
+| `scripts/verify.py` | recomputes the comparison arithmetic (delta, share, intersection) before a number goes into an answer |
+| `templates/sb-demand-capture-example-questions.html` | catalog of 23 example questions in 7 categories, for presenting the skill to a customer |

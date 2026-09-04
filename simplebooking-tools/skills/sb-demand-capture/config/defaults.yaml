@@ -1,107 +1,105 @@
-# sb-demand-capture — default e soglie
+# sb-demand-capture — defaults and thresholds
 #
-# Questa skill NON possiede un mapping hotel->Property ID: sia sb-revenue-lens
-# (config/defaults.yaml:known_hotels) sia sb-reservation-insights risolvono già il nome in
-# modo affidabile. Duplicarlo qui creerebbe una terza copia da tenere sincronizzata.
-# Passa lo stesso nome/ID a entrambe le invocazioni, non risolverlo tu.
+# This skill does NOT own a hotel->Property ID mapping: both sb-revenue-lens
+# (config/defaults.yaml:known_hotels) and sb-reservation-insights already resolve
+# the name reliably. Duplicating it here would create a third copy to keep in sync.
+# Pass the same name/ID to both invocations, don't resolve it yourself.
 
 # ---------------------------------------------------------------------------
-# Raggio di domanda — OBBLIGATORIO, MAI omesso
+# Demand radius — REQUIRED, NEVER omitted
 # ---------------------------------------------------------------------------
-# Validato su 4 property reali (2026-08-31): `property_destination_demands_run_report`
-# dichiara radius_km come parametro required, e NÉ lo schema del tool NÉ
-# `destination_get_report_options` espongono un default di sistema. Ometterlo o passare 0
-# produce un comportamento non documentato (un test con radius_km=0 è stato silenziosamente
-# sostituito con 2 km dal tool). Usa sempre uno di questi valori espliciti — eredita la
-# stessa convenzione di sb-revenue-lens (config/defaults.yaml:radius_km), non inventarne
-# una terza — e usa **lo stesso raggio per entrambi i lati di un confronto YoY**: raggi
-# diversi fra "quest'anno" e "un anno fa" rendono il delta calcolato privo di senso.
+# `property_destination_demands_run_report` declares radius_km as a required
+# parameter, and NEITHER the tool's schema NOR `destination_get_report_options`
+# expose a system default. Omitting it or passing 0 produces undocumented
+# behavior (a test with radius_km=0 was silently rewritten to 2 km by the
+# tool). Always use one of these explicit values — inherit the same
+# convention as sb-revenue-lens (config/defaults.yaml:radius_km), don't invent
+# a third one — and use **the same radius on both sides of a YoY
+# comparison**: different radii between "this year" and "a year ago" make the
+# computed delta meaningless.
 radius_km:
   urban_default: 12
   coastal_resort: 20
   rural_default: 25
 
 # ---------------------------------------------------------------------------
-# Periodo di default quando l'utente non lo specifica
+# Default period when the user doesn't specify one
 # ---------------------------------------------------------------------------
 default_window:
   weeks: 6
   note: >
-    Lunghezza del periodo analizzato quando l'utente non la specifica — non un orizzonte
-    "6 settimane avanti da confrontare settimana su settimana" (vedi il warning sotto: quel
-    confronto non è valido). È la finestra che poi va sempre raddoppiata in una coppia
-    "quest'anno / stessa finestra un anno fa" per qualunque lente che legga un trend di
-    domanda (X1, X4, X6, X7).
+    Length of the analyzed period when the user doesn't specify one — not a
+    "6 weeks ahead to compare week over week" horizon (see the warning below:
+    that comparison isn't valid). It's the window that then always gets
+    doubled into a "this year / same window a year ago" pair for any lens
+    that reads a demand trend (X1, X4, X6, X7).
 
 # ---------------------------------------------------------------------------
-# ATTENZIONE — validato su dati reali (Hotel D, Hotel E, Hotel F, Hotel C, round di
-# validazione 2026-08-31): la domanda per settimane consecutive in avanti NON è un trend
-# leggibile settimana-su-settimana
+# WARNING — demand for consecutive weeks ahead is NOT a readable
+# week-over-week trend
 # ---------------------------------------------------------------------------
-# `search_period_from/to` di default copre sempre gli ultimi 91 giorni PRIMA DI OGGI,
-# indipendentemente dalla settimana di soggiorno richiesta (`stay_date_from/to`). Il
-# risultato: il conteggio di domanda di settimane di soggiorno via via più lontane nel
-# futuro DECLINA quasi meccanicamente (osservato su tutte e 4 le property test, dal 15%
-# a oltre l'80% di calo dalla prima all'ultima delle 6 settimane), perché una data più
-# lontana ha semplicemente accumulato meno ricerche nella stessa finestra di osservazione
-# fissa — non perché il mercato si stia raffreddando. Confrontare la settimana N con la
-# settimana N+1 di uno stesso snapshot, come la specifica originale di X1 prevedeva,
-# confonde questo artefatto con un segnale reale.
+# `search_period_from/to` defaults to always covering the last 91 days BEFORE
+# TODAY, regardless of the requested stay week (`stay_date_from/to`). As a
+# result, the demand count for stay weeks progressively further in the future
+# DECLINES almost mechanically, because a more distant date has simply
+# accumulated fewer searches within the same fixed observation window — not
+# because the market is cooling off. Comparing week N to week N+1 of the same
+# snapshot, as X1's original spec assumed, confuses this artifact with a real
+# signal.
 #
-# La lettura valida è quella già usata e validata da sb-monday-brief (Detector 1): stessa
-# finestra di soggiorno, un anno fa vs oggi (domanda) — traslando search_period_from/to
-# insieme a stay_date_from/to di 364 giorni, non 365 (mantiene l'allineamento lunedì-
-# domenica) — contro OTB reale vs STLY (registrate entro lo snapshot di un anno fa meno
-# cancellate entro lo stesso snapshot). Vedi references/orchestration.md e
-# references/cross-lenses.md, sezione X1, per il metodo per esteso e un esempio reale
-# verificato con scripts/verify.py.
+# The valid reading is the one already used and validated by sb-monday-brief
+# (Detector 1): same stay window, a year ago vs today (demand) — shifting
+# search_period_from/to together with stay_date_from/to by 364 days, not 365
+# (keeps Monday-Sunday alignment) — against actual OTB vs STLY (booked within
+# the snapshot from a year ago minus canceled within that same snapshot). See
+# references/orchestration.md and references/cross-lenses.md, section X1, for
+# the full method and a verified real example checked with scripts/verify.py.
 
 # ---------------------------------------------------------------------------
-# Soglie di classificazione del gap (lenti X1, X3, X6) — punti percentuali di
-# differenza fra il tasso di crescita/variazione lato domanda e lato vendite reali
+# Gap classification thresholds (lenses X1, X3, X6) — percentage points of
+# difference between the growth/change rate on the demand side and the
+# actual sales side
 # ---------------------------------------------------------------------------
 gap_thresholds:
-  aligned_pp: 5     # |delta| <= 5pp -> "in linea con il mercato"
-  notable_pp: 15    # 5pp < |delta| <= 15pp -> "scostamento da verificare"
-                     # |delta| > 15pp -> "scostamento marcato" (segnala l'evidenza, non la causa)
+  aligned_pp: 5     # |delta| <= 5pp -> "in line with the market"
+  notable_pp: 15    # 5pp < |delta| <= 15pp -> "deviation to verify"
+                     # |delta| > 15pp -> "marked deviation" (flag the evidence, not the cause)
 
 # ---------------------------------------------------------------------------
-# Base minima per un delta % lato vendite (X1/X3/X6) — validato su dati reali
+# Minimum base for a sales-side delta % (X1/X3/X6)
 # ---------------------------------------------------------------------------
-# Hotel E, stessa validazione del 2026-08-31: una base STLY di 14
-# prenotazioni ha prodotto un gap di +150pp, aritmeticamente corretto ma senza significato
-# pratico — l'oscillazione di una manciata di prenotazioni. Sotto questa soglia,
-# `scripts/verify.py` non blocca il calcolo ma avvisa: riporta sempre i conteggi assoluti
-# accanto alla percentuale, mai la percentuale da sola.
+# A small STLY base can produce a percentage that's arithmetically correct
+# but practically meaningless — the swing of a handful of reservations. Below
+# this threshold, `scripts/verify.py` doesn't block the calculation but warns:
+# always report the absolute counts alongside the percentage, never the
+# percentage alone.
 min_gap_base_n: 20
 
 # ---------------------------------------------------------------------------
-# Stabilità del rapporto reale/domanda anno su anno (solo X6) — validato su dati reali
+# Year-over-year stability of the actual/demand ratio (X6 only)
 # ---------------------------------------------------------------------------
-# X6 confronta il delta YoY di due medie (daysAhead di domanda, DaysInAdvanced reale)
-# invece del valore assoluto, perché le due popolazioni non sono comparabili in assoluto
-# (ricerche vs prenotazioni confermate — vedi references/cross-lenses.md). Il metodo
-# assume che il RAPPORTO fra le due medie resti stabile nel tempo: su Hotel D
-# è rimasto stabile (2,80x -> 2,91x, drift 3,8%); su Hotel G si è
-# spostato del 27,6% (1,50x -> 1,91x) sulla stessa validazione. Sopra questa soglia di
-# drift, `scripts/verify.py` avvisa che il gap calcolato è un'ipotesi da verificare con
-# l'albergatore, non una lettura confermata.
+# X6 compares the YoY delta of two averages (demand's daysAhead, actual
+# DaysInAdvanced) instead of the absolute value, because the two populations
+# aren't comparable in absolute terms (searches vs confirmed reservations —
+# see references/cross-lenses.md). The method assumes the RATIO between the
+# two averages stays stable over time. Above this drift threshold,
+# `scripts/verify.py` warns that the computed gap is a hypothesis to verify
+# with the hotelier, not a confirmed reading.
 max_ratio_drift_pct: 15
 
 # ---------------------------------------------------------------------------
-# Doppia base per il gap (RoomNights vs reservationsCount) — validato su dati reali
+# Double basis for the gap (RoomNights vs reservationsCount)
 # ---------------------------------------------------------------------------
-# Hotel C, stessa validazione: la base RoomNights e la base
-# reservationsCount hanno classificato la stessa settimana in due modi diversi ("da
-# verificare" vs "scostamento marcato") — un cambio nella dimensione media delle
-# prenotazioni (più/meno camere o notti per prenotazione) basta a farle divergere. Calcola
-# sempre entrambe le basi per X1/X3/X6 e passa `other_basis_classification` a
-# `scripts/verify.py`: se disaccordano, riportale entrambe nella risposta invece di
-# sceglierne una in silenzio.
+# The RoomNights basis and the reservationsCount basis can classify the same
+# week two different ways ("to verify" vs "marked deviation") — a change in
+# the average size of reservations (more/fewer rooms or nights per
+# reservation) is enough to make them diverge. Always compute both bases for
+# X1/X3/X6 and pass `other_basis_classification` to `scripts/verify.py`: if
+# they disagree, report both in the answer instead of silently picking one.
 
 # ---------------------------------------------------------------------------
-# Copertura minima di un campo lato Back Office prima di leggerne il confronto
-# (lente X5 — mercati/segmenti). Stessa soglia di avviso che sb-reservation-insights
-# applica alle proprie distribuzioni.
+# Minimum coverage of a Back Office field before reading its comparison
+# (lens X5 — markets/segments). Same warning threshold that
+# sb-reservation-insights applies to its own distributions.
 # ---------------------------------------------------------------------------
 min_field_coverage: 0.25

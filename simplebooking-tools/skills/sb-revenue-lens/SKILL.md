@@ -4,201 +4,201 @@ metadata:
   author: Sergio Farinelli
   organization: QNT — SimpleBooking — Zucchetti Group
 description: >
-  Diagnostico revenue domanda-guidato per hotel, solo MCP SimpleBooking.
-  L'utente fa una domanda su hotel+periodo e la skill incrocia domanda d'area,
-  disponibilità, restrizioni e prezzi: risposta in chat, report brandizzato a
-  richiesta. Usa SEMPRE per: "dove perdo/lascio soldi", "rischio invenduto",
-  "date deboli", "le mie restrizioni", "MinLOS", "minimum stay", "diretto vs
-  OTA", "parità tariffaria", "dove ho ancora camere", "quanto anticipo ho",
-  "opportunità revenue", "money leak", "period check", "analizza il periodo X".
-  NON usare per: eventi (sb-event-radar), traffico AI (sb-ai-traffic), audit
-  contenuti (sb-hotel-content-audit), crawl sito (qnt-site-inspector), confronto con
-  prenotazioni reali (sb-demand-capture).
+  Demand-driven revenue diagnostic for hotels, SimpleBooking MCP only. The
+  user asks a question about a hotel+period and the skill cross-references
+  area demand, availability, restrictions and prices: answer in chat, branded
+  report on request. Use ALWAYS for: "where am I losing money", "unsold
+  risk", "weak dates", "my restrictions", "MinLOS", "minimum stay", "direct
+  vs OTA", "rate parity", "which dates do I still have rooms",
+  "how much lead time do I have", "revenue opportunity", "money leak",
+  "period check", "analyze period X". Do NOT use for: events (sb-event-radar),
+  AI traffic (sb-ai-traffic), content audit (sb-hotel-content-audit), site
+  crawl (qnt-site-inspector), comparison with actual reservations
+  (sb-demand-capture).
 ---
 
-# 🔎 sb-revenue-lens — Diagnostico revenue domanda-guidato (SB-only)
+# 🔎 sb-revenue-lens — Demand-driven revenue diagnostic (SB-only)
 
-## Panoramica
+## Overview
 
-`sb-revenue-lens` risponde a **una domanda dell'albergatore** su un periodo,
-incrociando la **domanda d'area** (ricerche dei viaggiatori sul booking engine,
-via `property_destination_demands_run_report`) con la **disponibilità,
-le restrizioni e i prezzi** della struttura.
+`sb-revenue-lens` answers **one question from the hotelier** about a period,
+cross-referencing **area demand** (traveler searches on the booking engine,
+via `property_destination_demands_run_report`) with the property's
+**availability, restrictions and prices**.
 
-A differenza di un report che vomita tutte le metriche, questa skill è
-**guidata dall'intento**: l'utente pensa per problemi ("sto perdendo soldi?"),
-non per metriche. Un router interno mappa la domanda su una o più **lenti**,
-ognuna delle quali è un **detector deterministico** (regola verificabile) +
-una narrazione breve.
+Unlike a report that dumps every metric, this skill is **intent-driven**: the
+user thinks in terms of problems ("am I losing money?"), not metrics. An
+internal router maps the question to one or more **lenses**, each of which is
+a **deterministic detector** (a verifiable rule) plus a short narration.
 
-**Vincolo fondante:** usa SOLO il MCP SimpleBooking. Nessun Zucchetti Travel
-Data Lake, nessuna fonte eventi proprietaria. È pensata per essere usata da
-albergatori, consulenti e reseller **esterni**. → vedi §"Cosa NON può fare".
+**Founding constraint:** uses ONLY the SimpleBooking MCP. No Zucchetti Travel
+Data Lake, no proprietary events source. It's meant to be used by hoteliers,
+consultants and **external** resellers. → see §"What it CANNOT do".
 
-Default in **chat** (prima risposta veloce). Report brandizzato **a richiesta**.
+Defaults to **chat** (fast first answer). Branded report **on request**.
 
-## MCP Tools (tutti e soli SimpleBooking)
+## MCP Tools (all and only SimpleBooking)
 
-- `booking_engine_search_properties` / `booking_engine_get_accessible_properties` — risoluzione hotel.
-- `property_get_basic_info` — nome, stelle, città, lingue, valuta, **rate_match_enabled**, room types.
-- `destination_get_report_options` — valori validi per i campi del demand report.
-- `property_destination_demands_run_report` — **motore centrale**: domanda d'area.
-- `property_get_availability_calendar` — disponibilità effettiva + restrizioni (MinLOS/MaxLOS/CI/CO).
-- `property_query_bookable_options` — prezzi, camere residue, breakdown LOS, Query ID per OTA.
-- `property_get_ota_prices` — parità OTA (solo hotel con rate match).
-- `property_get_room_types_list` / `property_get_services_list` — solo per la lente "posizionamento".
-- `calendar_*` — classificazione date (weekend, festività nazionali, conteggio notti). **Mai** calcolare i giorni della settimana a mente.
+- `booking_engine_search_properties` / `booking_engine_get_accessible_properties` — hotel resolution.
+- `property_get_basic_info` — name, stars, city, languages, currency, **rate_match_enabled**, room types.
+- `destination_get_report_options` — valid values for the demand report fields.
+- `property_destination_demands_run_report` — **core engine**: area demand.
+- `property_get_availability_calendar` — actual availability + restrictions (MinLOS/MaxLOS/CI/CO).
+- `property_query_bookable_options` — prices, remaining rooms, LOS breakdown, Query ID for OTA.
+- `property_get_ota_prices` — OTA parity (only for hotels with rate match).
+- `property_get_room_types_list` / `property_get_services_list` — only for the "positioning" lens.
+- `calendar_*` — date classification (weekends, national holidays, night counts). **Never** compute days of the week by hand.
 
-## Cosa NON può fare (dichiararlo sempre nell'output)
+## What it CANNOT do (always state this in the output)
 
-La skill è un **diagnostico domanda-d'area vs mia disponibilità/prezzo**, NON un RMS. Con il solo MCP SB **non** vede:
+The skill is an **area-demand vs my-availability/price diagnostic**, NOT an RMS. With the SB MCP alone it does **not** see:
 
-- on-the-books reale né passo di pickup (la domanda è *ricerca d'area*, non le tue prenotazioni);
-- tariffe dei competitor reali (solo parità OTA, e solo se rate match attivo);
-- **fonte eventi**: la skill rileva i pattern (sold-out, gap night) ma **non attribuisce** la causa. Vedi §Eventi.
+- actual on-the-books figures or pickup pace (demand is *area search activity*, not your reservations);
+- real competitor rates (only OTA parity, and only if rate match is active);
+- **an events source**: the skill detects patterns (sold-out, gap nights) but **does not attribute** the cause. See §Events.
 
-Tutto ciò che è inferenza va etichettato come tale, distinto dai fatti.
+Anything that is inference must be labeled as such, distinct from facts.
 
-## Parametri di input
+## Input parameters
 
-### Obbligatori
-| Parametro | Tipo | Descrizione |
+### Required
+| Parameter | Type | Description |
 |---|---|---|
-| `hotel` | nome o ID SB | Risolvi nomi noti via mapping; se sconosciuto chiedi il Property ID. |
-| `period` | flessibile | Es. "giugno", "giu-lug", "prossime 6 settimane", range esplicito. |
+| `hotel` | SB name or ID | Resolve known names via the mapping; if unknown ask for the Property ID. |
+| `period` | flexible | E.g. "June", "Jun-Jul", "next 6 weeks", explicit range. |
 
-### Opzionali
-| Parametro | Default | Descrizione |
+### Optional
+| Parameter | Default | Description |
 |---|---|---|
-| `question` | — | La domanda in linguaggio naturale. Se assente, vedi STEP 2 (router/chiedi). |
-| `radius_km` | `12` urbano / `25` extra-urbano | Raggio domanda d'area. |
-| `room_allocations` | `[{adults:2, children:[]}]` | Composizione per le query prezzo. |
-| `output_mode` | `chat` | `chat` = prima risposta; `report` = PDF/HTML brandizzato. |
-| `language` | lingua conversazione | Lingua di risposta/report. |
-| `promo_code` | null | Codice promo da testare nelle query prezzo. |
+| `question` | — | The question in natural language. If absent, see STEP 2 (router/ask). |
+| `radius_km` | `12` urban / `25` extra-urban | Area demand radius. |
+| `room_allocations` | `[{adults:2, children:[]}]` | Guest composition for price queries. |
+| `output_mode` | `chat` | `chat` = first answer; `report` = branded PDF/HTML. |
+| `language` | conversation language | Answer/report language. |
+| `promo_code` | null | Promo code to test in price queries. |
 
-## Architettura a due passate (controllo costi/latenza)
+## Two-pass architecture (cost/latency control)
 
-`property_query_bookable_options` è **caro**; `availability_calendar` e il demand
-report sono **economici**. Quindi:
+`property_query_bookable_options` is **expensive**; `availability_calendar` and
+the demand report are **cheap**. So:
 
-1. **Passata leggera (sempre):** demand report (per settimana + 1-2 tagli) +
-   availability calendar sull'intero periodo. Da qui il detector individua le
-   **date interessanti** (sold-out, bordi sold-out, weekend, ultima camera,
-   settimane ad alta domanda).
-2. **Passata mirata (solo dove serve):** `query_bookable_options` SOLO sulle
-   date interessanti, non su tutto il periodo. La parità OTA (`get_ota_prices`)
-   solo in modalità `report` e solo se rate match attivo.
+1. **Light pass (always):** demand report (per week + 1-2 cuts) +
+   availability calendar over the whole period. From this the detector
+   identifies the **dates of interest** (sold-out, sold-out edges, weekends,
+   last room, high-demand weeks).
+2. **Targeted pass (only where needed):** `query_bookable_options` ONLY on the
+   dates of interest, not over the whole period. OTA parity
+   (`get_ota_prices`) only in `report` mode and only if rate match is active.
 
-## Router degli intenti
+## Intent router
 
-Mappa la domanda dell'utente → lente/i. Se ambigua, chiedi con scelta multipla.
-Se l'utente non fa una domanda ("analizza giugno"), esegui le lenti L1+L2 (le
-più universali) e offri le altre.
+Maps the user's question → lens(es). If ambiguous, ask with a multiple choice.
+If the user doesn't ask a question ("analyze June"), run lenses L1+L2 (the
+most universal) and offer the others.
 
-| Trigger nella domanda | Lente |
+| Trigger in the question | Lens |
 |---|---|
-| "dove perdo / lascio soldi", "money leak", "opportunità" | **L1 — Money-leak** |
-| "rischio invenduto", "date deboli", "dove ho ancora camere" | **L2 — Rischio invenduto** |
-| "restrizioni", "MinLOS", "minimum stay", "soggiorni corti" | **L3 — Restrizioni vs LOS** |
-| "diretto vs OTA", "parità", "disparity" | **L4 — Parità OTA** |
-| "anticipo", "quanto tempo ho", "runway", "urgenza" | **L5 — Runway/anticipo** |
-| "da dove viene la domanda", "famiglie", "mercati", "lingue" | **L6 — Posizionamento domanda** |
+| "where am I losing money", "money leak", "opportunity" | **L1 — Money-leak** |
+| "unsold risk", "weak dates", "which dates do I still have rooms" | **L2 — Unsold risk** |
+| "restrictions", "MinLOS", "minimum stay", "short stays" | **L3 — Restrictions vs LOS** |
+| "direct vs OTA", "parity", "disparity" | **L4 — OTA parity** |
+| "lead time", "how much time do I have", "runway", "urgency" | **L5 — Runway/lead time** |
+| "where does demand come from", "families", "markets", "languages" | **L6 — Demand positioning** |
 
-## Le lenti (detector deterministici)
+## The lenses (deterministic detectors)
 
-Ogni lente: **input → regola → output**. Il modello *narra* il risultato della
-regola; non inventa la regola.
+Each lens: **input → rule → output**. The model *narrates* the rule's result;
+it does not invent the rule.
 
-### L1 — Money-leak ("dove sto lasciando soldi?")
-- **Input:** demand per settimana; availability calendar; prezzi sulle date interessanti.
-- **Regola — segnala una data/notte se:**
-  - *Ultima-camera-a-tariffa-piatta:* poche camere residue (es. ≤1-2 per la cheapest) **e** prezzo notte ≈ baseline del periodo (nessun premio nonostante la scarsità).
-  - *Orphan night ad alto valore:* notte libera incastrata tra notti sold-out (vedi L3 per il dettaglio del meccanismo) in una settimana ad alta domanda.
-  - *Domanda alta / io largo & a buon mercato:* settimana con ricerche d'area nel quartile alto **ma** disponibilità ampia e prezzo nel quartile basso.
-- **Output:** lista date "leak" ordinata per stima di valore, con il **tipo** di perdita e una domanda di verifica (non un ordine).
+### L1 — Money-leak ("where am I leaving money on the table?")
+- **Input:** demand per week; availability calendar; prices on the dates of interest.
+- **Rule — flag a date/night if:**
+  - *Last-room-at-flat-rate:* few rooms remaining (e.g. ≤1-2 for the cheapest) **and** nightly price ≈ the period baseline (no premium despite scarcity).
+  - *High-value orphan night:* a free night wedged between sold-out nights (see L3 for the mechanism detail) in a high-demand week.
+  - *High demand / I'm wide open & cheap:* a week with area searches in the top quartile **but** wide availability and price in the bottom quartile.
+- **Output:** list of "leak" dates ranked by estimated value, with the **type** of loss and a verification question (not an order).
 
-### L2 — Rischio invenduto ("quali date rischiano l'invenduto?")
-- **Input:** demand per settimana + `daysAhead`; availability calendar; prezzo campione.
-- **Regola — segnala se:** domanda d'area bassa/calante **+** disponibilità ampia su molte categorie **+** già **dentro/oltre** l'anticipo medio del periodo (poco runway residuo).
-- **Output:** date soft + "quanto sei in ritardo" sul ciclo di prenotazione + leve possibili (offerta breve, MinLOS basso, pacchetto) come opzioni, non prescrizioni.
+### L2 — Unsold risk ("which dates risk going unsold?")
+- **Input:** demand per week + `daysAhead`; availability calendar; sample price.
+- **Rule — flag if:** low/declining area demand **+** wide availability across many categories **+** already **inside/beyond** the period's average lead time (little runway left).
+- **Output:** soft dates + "how far behind you are" on the booking cycle + possible levers (short offer, low MinLOS, package) as options, not prescriptions.
 
-### L3 — Restrizioni vs LOS della domanda ("le mie regole mi tagliano fuori?")
-- **Input:** demand `numberOfNights` (distribuzione); availability calendar (MinLOS + gap night).
-- **Regola — segnala se:**
-  - la domanda è concentrata su 1-2 notti **ma** ho MinLOS ≥3 su quelle date; oppure
-  - esistono **gap night**: una notte libera che non è vendibile in un 2-3 notti perché una notte adiacente è sold-out (es. il 23 libero ma il 24 pieno → il 23→25 fallisce e perdo la notte del 23).
-- **Output:** quanta domanda *matchabile* sto rifiutando e su quali notti; suggerimento di apertura 1-notte / orphan-night.
-- **Nota di robustezza:** L3 è la più affidabile perché 100% meccanica e SB-only. **Riconcilia sempre** `availability_calendar` (che può dire "Can Stay: Yes") con un `query_bookable_options` multi-notte di verifica: nella simulazione il calendario diceva disponibile ma il 2-notti falliva. Non fidarsi del solo calendario.
+### L3 — Restrictions vs demand LOS ("are my own rules shutting me out?")
+- **Input:** demand `numberOfNights` (distribution); availability calendar (MinLOS + gap nights).
+- **Rule — flag if:**
+  - demand is concentrated on 1-2 nights **but** MinLOS ≥3 is set on those dates; or
+  - **gap nights** exist: a free night that can't be sold as part of a 2-3 night stay because an adjacent night is sold out (e.g. the 23rd is free but the 24th is full → a 23→25 search fails and the night of the 23rd is lost).
+- **Output:** how much *matchable* demand is being turned away and on which nights; suggestion to open a 1-night/orphan-night stay.
+- **Robustness note:** L3 is the most reliable lens because it's 100% mechanical and SB-only. **Always reconcile** `availability_calendar` (which can say "Can Stay: Yes") with a verification multi-night `query_bookable_options` call: in practice the calendar can say available while a 2-night query still fails. Don't trust the calendar alone.
 
-### L4 — Parità OTA ("il mio diretto batte le OTA?")
-- **Pre-condizione:** `rate_match_enabled = true` (altrimenti salta e dillo).
-- **Input:** `query_bookable_options` → Query ID → `get_ota_prices` su date chiave.
-- **Regola:** segnala le date dove una OTA è sotto il diretto.
-- **Output:** elenco date di disparità con scarto assoluto/%.
+### L4 — OTA parity ("does my direct rate beat the OTAs?")
+- **Pre-condition:** `rate_match_enabled = true` (otherwise skip and say so).
+- **Input:** `query_bookable_options` → Query ID → `get_ota_prices` on key dates.
+- **Rule:** flag dates where an OTA is priced below direct.
+- **Output:** list of disparity dates with absolute/% gap.
 
-### L5 — Runway / anticipo ("quanto tempo ho per agire?")
-- **Input:** demand `daysAhead` per periodo; calendar (giorni mancanti).
-- **Regola:** confronta anticipo medio del periodo vs giorni residui → mappa di urgenza (agire ora / c'è tempo / finestra chiusa).
-- **Output:** per blocco di date, il livello di urgenza.
+### L5 — Runway / lead time ("how much time do I have to act?")
+- **Input:** demand `daysAhead` for the period; calendar (days remaining).
+- **Rule:** compare the period's average lead time vs days remaining → urgency map (act now / there's time / window closed).
+- **Output:** urgency level per block of dates.
 
-### L6 — Posizionamento domanda (lente "soft", opzionale)
-- **Input:** demand `user.countryCode`, `guestType`, `numberOfKids`, `device`; room types/servizi/lingue.
-- **Regola:** grande domanda di un mercato/segmento (es. US, famiglie) vs contenuto/camere/lingue non allineati.
-- **Output:** gap di posizionamento sul booking engine. Esplicitamente qualitativa, non un calcolo di prezzo.
+### L6 — Demand positioning ("soft" lens, optional)
+- **Input:** demand `user.countryCode`, `guestType`, `numberOfKids`, `device`; room types/services/languages.
+- **Rule:** large demand from a market/segment (e.g. US, families) vs misaligned content/rooms/languages.
+- **Output:** positioning gap on the booking engine. Explicitly qualitative, not a price calculation.
 
-## Eventi — come gestire il buco senza ZDL
+## Events — how to handle the gap without a demand data lake
 
-La skill **non possiede una fonte eventi**. Regola d'oro: **mai affermare** un
-evento che non può provare. In ordine di preferenza:
+The skill **has no events source**. Golden rule: **never claim** an event it
+can't prove. In order of preference:
 
-1. **Rileva, non attribuire:** "il 24/6 è sold-out e spezza i 2-notti" — corretto al 100%.
-2. **Chiedi all'albergatore:** "Su queste date sei pieno: sai se ci sono eventi/fiere?" Lui conosce il suo calendario meglio del modello.
-3. *(Opzionale, fuori MCP SB)* se l'ambiente ha web search, arricchimento "best-effort" etichettato come **ipotesi**. Mai dipendenza, mai presentato come fatto.
+1. **Detect, don't attribute:** "June 24th is sold out and breaks 2-night stays" — 100% correct.
+2. **Ask the hotelier:** "You're full on these dates: do you know of any events or fairs?" They know their calendar better than the model.
+3. *(Optional, outside the SB MCP)* if the environment has web search, "best-effort" enrichment labeled as a **hypothesis**. Never a dependency, never presented as fact.
 
-## Guardrail
+## Guardrails
 
-- **Non è consulenza prescrittiva di prezzo.** Inquadra come supporto: "3 cose da verificare", opzioni, non "fai X". Ricorda che la skill non vede costi, allotment, gruppi, contratti, strategia.
-- **Mostra sempre la tabella delle evidenze** (date, disponibilità, prezzo, domanda). La trasparenza è il fossato contro i tool "AI revenue" black-box.
-- **"Available: N" ≠ inventario di casa.** È N per quella categoria a quella tariffa. Non gridare alla scarsità.
-- **Fatto vs inferenza** sempre distinti nel testo.
-- **Date passate:** `query_bookable_options` non accetta il passato; per il mese corrente parti da oggi e dillo.
+- **Not prescriptive pricing advice.** Frame it as support: "3 things to check", options, not "do X". Remember the skill doesn't see costs, allotments, groups, contracts, or strategy.
+- **Always show the evidence table** (dates, availability, price, demand). Transparency is the moat against black-box "AI revenue" tools.
+- **"Available: N" ≠ house inventory.** It's N for that category at that rate. Don't cry scarcity.
+- **Fact vs inference** always kept distinct in the text.
+- **Past dates:** `query_bookable_options` doesn't accept the past; for the current month, start from today and say so.
 
 ## Output
 
-### Modalità `chat` (default)
-1. Una riga di sintesi per la proprietà.
-2. La risposta alla lente attivata (lista date + tipo di segnale).
-3. Tabella evidenze compatta.
-4. 1-3 domande di verifica / opzioni.
-5. Offerta: "vuoi il report brandizzato / lo scan schedulato?"
+### `chat` mode (default)
+1. One summary line for the property.
+2. The answer for the triggered lens (list of dates + signal type).
+3. Compact evidence table.
+4. 1-3 verification questions / options.
+5. Offer: "want the branded report / the scheduled scan?"
 
-### Modalità `report` (a richiesta)
-Generata con lo script incluso, **non** scrivendo HTML a mano:
+### `report` mode (on request)
+Generated with the included script, **not** by hand-writing HTML:
 
 ```
-python scripts/build_report.py analisi.json -o report_<hotel>_<periodo>.html
+python scripts/build_report.py analysis.json -o report_<hotel>_<period>.html
 ```
 
-Lo script (stdlib only, Chart.js da CDN) produce il layout approvato: header
-SimpleBooking, domanda, sintesi, grafici domanda/LOS, segnali per lente con
-tabelle evidenze + callout, mappa date a calendario, blocco limiti, spazio
-eventi, opzioni. Procedura: esegui le lenti → compila un JSON secondo lo schema
-di `scripts/sample_hotel_d.json` → lancia lo script → consegna l'HTML (apribile nel
-browser, esportabile in PDF).
+The script (stdlib only, Chart.js from CDN) produces the approved layout:
+SimpleBooking header, demand, summary, demand/LOS charts, per-lens signals
+with evidence tables + callouts, calendar date map, limits block, events
+space, options. Procedure: run the lenses → fill in a JSON per the schema in
+`scripts/sample_hotel_d.json` → run the script → deliver the HTML (openable
+in the browser, exportable to PDF).
 
-Classi colore celle tabella: `t-or` `t-gr` `t-red`. Classi calendario: `red`
+Table cell color classes: `t-or` `t-gr` `t-red`. Calendar classes: `red`
 (sold-out/MinLOS4), `or` (tight/MinLOS3), `y` (MinLOS2), `gr` (soft), `past`.
 
-## Estensioni
-- **Batch multi-hotel** per consulenti/reseller (scan portfolio).
-- **Scheduling**: scan del mattino che avvisa solo quando un detector scatta
-  (es. ultime camere di un weekend sotto soglia, nuova gap night).
+## Extensions
+- **Multi-hotel batch** for consultants/resellers (portfolio scan).
+- **Scheduling**: a morning scan that only alerts when a detector triggers
+  (e.g. a weekend's last rooms below threshold, a new gap night).
 
-## File di supporto
-1. `config/defaults.yaml` — soglie detector, mapping hotel noti, raggi default.
-2. `config/lenses.md` — specifica formale di ogni detector (input, regola, edge case).
-3. `templates/report-structure.md` — struttura narrativa del report.
-4. `scripts/build_report.py` — generatore HTML brandizzato (layout approvato).
-5. `scripts/sample_hotel_d.json` — esempio di input completo, runnable.
-6. `examples/usage.md` — esempi domanda → risposta sui 4 hotel (suite di regressione).
+## Supporting files
+1. `config/defaults.yaml` — detector thresholds, known-hotel mapping, default radii.
+2. `config/lenses.md` — formal spec of every detector (input, rule, edge case).
+3. `templates/report-structure.md` — narrative structure of the report.
+4. `scripts/build_report.py` — branded HTML generator (approved layout).
+5. `scripts/sample_hotel_d.json` — full example input, runnable.
+6. `examples/usage.md` — question → answer examples on 4 hotels (regression suite).

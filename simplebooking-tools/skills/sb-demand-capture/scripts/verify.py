@@ -90,8 +90,7 @@ def check_gap(block: dict, where: str) -> None:
               f"(demand {demand_side:+.1f}%, sales {sales_side:+.1f}%) — likely "
               f"seasonality, say so before flagging a problem")
 
-    # Real-data finding (Hotel E, 2026-08-31 validation round): a STLY base of 14
-    # reservations produced a +150pp gap that was arithmetically correct but practically
+    # A thin STLY base can produce a gap that is arithmetically correct but practically
     # meaningless — a swing of a handful of bookings on a thin base. Below this floor, the
     # percentage must be reported alongside the raw counts, never alone.
     base_n = block.get("sales_base_n")
@@ -105,24 +104,22 @@ def check_gap(block: dict, where: str) -> None:
                       f"counts alongside the percentage, a swing of a few bookings "
                       f"produces a large, unstable delta on a base this thin")
 
-    # Real-data finding (Hotel C, 2026-08-31 validation round): the RoomNights
-    # basis and the reservationsCount basis classified the same week differently ("da
-    # verificare" vs "scostamento marcato"). When a caller checks both, surface disagreement
-    # instead of silently reporting only the more convenient one.
+    # The RoomNights basis and the reservationsCount basis can classify the same week
+    # differently ("to verify" vs "marked deviation"). When a caller checks both, surface
+    # disagreement instead of silently reporting only the more convenient one.
     other_class = block.get("other_basis_classification")
     if other_class is not None and other_class != expected_class:
         _warn(f"{where}: classifies as '{expected_class}' on this basis but "
               f"'{other_class}' on the other basis ({block.get('other_basis_label', 'n/a')}) "
               f"— report both bases and the disagreement, do not pick one silently")
 
-    # Real-data finding (X6, Hotel D vs Hotel G, 2026-08-31 validation
-    # round): X6's YoY-delta fix assumes the structural search-vs-booking population bias
+    # X6's YoY-delta fix assumes the structural search-vs-booking population bias
     # (sales_side / demand_side, in absolute terms, before taking deltas) stays roughly
-    # constant year over year. It held tightly at Hotel D (2.80x vs 2.91x, a 3.8%
-    # move) but drifted a lot at Hotel G (1.50x vs 1.91x, a 27.6% move) — same
-    # corrected formula, same clean arithmetic, very different reliability of the
-    # underlying assumption. When both ratios are supplied, flag a large drift so the
-    # classification is read with the right amount of caution instead of at face value.
+    # constant year over year. That assumption can hold tightly on one property and drift
+    # a lot on another — same corrected formula, same clean arithmetic, very different
+    # reliability of the underlying assumption. When both ratios are supplied, flag a large
+    # drift so the classification is read with the right amount of caution instead of at
+    # face value.
     ratio_a = block.get("basis_ratio_a")
     ratio_b = block.get("basis_ratio_b")
     if ratio_a is not None and ratio_b is not None:

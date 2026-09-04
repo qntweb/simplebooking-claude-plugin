@@ -1,65 +1,65 @@
-# Step 9 — Analytics & Next Step Intelligente
+# Step 9 — Analytics & Smart Next Step
 
-## Step 8.5 — MCP Probe (Silenzioso, INVISIBILE all'utente)
+## Step 8.5 — MCP Probe (Silent, INVISIBLE to the user)
 
-Si esegue DOPO il report (Step 8) e PRIMA di proporre il Next Step.
+Runs AFTER the report (Step 8) and BEFORE proposing the Next Step.
 
-### Procedura probe
+### Probe procedure
 
 1. **Google Analytics MCP:**
-   Chiama `get_account_summaries()`.
-   - Risponde → GA4_AVAILABLE = true. Salvare il risultato per riusarlo.
-   - Errore → GA4_AVAILABLE = false.
+   Call `get_account_summaries()`.
+   - Responds → GA4_AVAILABLE = true. Save the result for reuse.
+   - Error → GA4_AVAILABLE = false.
 
 2. **Zucchetti Travel Data Lake MCP:**
-   Chiama `destination_get_report_options()`.
-   - Risponde → DATALAKE_AVAILABLE = true.
-   - Errore → DATALAKE_AVAILABLE = false.
+   Call `destination_get_report_options()`.
+   - Responds → DATALAKE_AVAILABLE = true.
+   - Error → DATALAKE_AVAILABLE = false.
 
-Se FORCE_GA4_AVAILABLE o FORCE_DATALAKE_AVAILABLE impostati → usarli.
+If FORCE_GA4_AVAILABLE or FORCE_DATALAKE_AVAILABLE are set → use them.
 
-### Regole critiche
-- NON mostrare errori dei probe all'utente.
-- NON chiedere all'utente se ha i tool installati.
-- Se ENTRAMBI false → saltare Step 9, andare a Step 10.
-- MAI menzionare tool assenti. Esperienza trasparente.
+### Critical rules
+- Do NOT show probe errors to the user.
+- Do NOT ask the user whether they have the tools installed.
+- If BOTH false → skip Step 9, go to Step 10.
+- NEVER mention missing tools. Transparent experience.
 
 ---
 
-## Step 9 — Biforcazione
+## Step 9 — Branching
 
-Prerequisito: almeno 1 tool opzionale disponibile.
+Prerequisite: at least 1 optional tool available.
 
-### Scenario 9A — TRIAGE ("Quali lingue CORREGGERE per prime?")
+### Scenario 9A — TRIAGE ("Which languages to FIX first?")
 
-Si attiva quando l'audit ha trovato problemi significativi:
-- >= 3 issue ❌ su lingue diverse dalla master, OPPURE
-- >= 5 issue ⚠️ su lingue diverse dalla master, OPPURE
-- >= 2 lingue con completezza < 50%
+Triggers when the audit found significant issues:
+- >= 3 ❌ issues on languages other than master, OR
+- >= 5 ⚠️ issues on languages other than master, OR
+- >= 2 languages with completeness < 50%
 
-### Scenario 9B — OPPORTUNITÀ ("Quali lingue AGGIUNGERE?")
+### Scenario 9B — OPPORTUNITY ("Which languages to ADD?")
 
-Si attiva quando 9A NON si applica (audit buono).
-Verifica se esistono mercati con traffico/domanda significativa
-NON coperti dalle lingue abilitate sull'hotel.
+Triggers when 9A does NOT apply (good audit).
+Checks whether markets with significant traffic/demand exist that are NOT
+covered by the hotel's enabled languages.
 
-### Opzioni utente (solo tool disponibili)
+### User options (only available tools)
 
-| GA4 | DL | Opzioni mostrate |
+| GA4 | DL | Options shown |
 |-----|----|-----------------|
-| ✅ | ✅ | 📊🔮 Completa / 📊 Solo GA4 / 🔮 Solo DL / ❌ No |
-| ✅ | ❌ | 📊 Sì, analizza traffico / ❌ No |
-| ❌ | ✅ | 🔮 Sì, analizza domanda / ❌ No |
+| ✅ | ✅ | 📊🔮 Full / 📊 GA4 only / 🔮 DL only / ❌ No |
+| ✅ | ❌ | 📊 Yes, analyze traffic / ❌ No |
+| ❌ | ✅ | 🔮 Yes, analyze demand / ❌ No |
 
 ---
 
-## Chiamate API
+## API calls
 
-### Google Analytics (se selezionato)
+### Google Analytics (if selected)
 
-Trovare GA4 ID: tabella hotels.md → probe result → chiedi utente.
+Find the GA4 ID: hotels.md table → probe result → ask the user.
 
-**1. Traffico per lingua:**
+**1. Traffic by language:**
 ```
 run_report(
   property_id = [GA4_ID],
@@ -72,7 +72,7 @@ run_report(
 )
 ```
 
-**2. Traffico per paese:**
+**2. Traffic by country:**
 ```
 run_report(
   property_id = [GA4_ID],
@@ -85,7 +85,7 @@ run_report(
 )
 ```
 
-**3. Trend mensile (solo Sonnet/Opus):**
+**3. Monthly trend (Sonnet/Opus only):**
 ```
 run_report(
   property_id = [GA4_ID],
@@ -97,40 +97,40 @@ run_report(
 )
 ```
 
-### Zucchetti Travel Data Lake (se selezionato)
+### Zucchetti Travel Data Lake (if selected)
 
-Usa coordinate GPS hotel (da basic_info SimpleBooking).
+Use the hotel's GPS coordinates (from SimpleBooking basic_info).
 
-**1. Domanda futura per paese:**
+**1. Future demand by country:**
 ```
 destination_demands_run_report(
   center_lat = [LAT], center_lon = [LON],
   radius_km = 5,
-  search_period_from = [90gg fa], search_period_to = [oggi],
-  stay_date_from = [oggi], stay_date_to = [+90gg],
+  search_period_from = [90 days ago], search_period_to = [today],
+  stay_date_from = [today], stay_date_to = [+90 days],
   buckets = '[{"aggregationType":"Terms","field":"user.countryCode","order":"Desc","size":20}]',
   metrics = '[{"aggregationType":"Count"},{"aggregationType":"Average","field":"numberOfNights"},{"aggregationType":"Average","field":"numberOfPersons"}]'
 )
 ```
 
-**2. Trend domanda mensile:**
+**2. Monthly demand trend:**
 ```
 destination_demands_run_report(
   center_lat = [LAT], center_lon = [LON],
   radius_km = 5,
-  search_period_from = [180gg fa], search_period_to = [oggi],
-  stay_date_from = [oggi], stay_date_to = [+90gg],
+  search_period_from = [180 days ago], search_period_to = [today],
+  stay_date_from = [today], stay_date_to = [+90 days],
   buckets = '[{"aggregationType":"DateHistogram","field":"searchTimestampUTC","order":"Asc","interval":"1M"},{"aggregationType":"Terms","field":"user.countryCode","order":"Desc","size":10}]',
   metrics = '[{"aggregationType":"Count"}]'
 )
 ```
 
-**3. (Opzionale) Prenotazioni effettive:**
+**3. (Optional) Actual reservations:**
 ```
 destination_reservations_run_report(
   center_lat = [LAT], center_lon = [LON],
   radius_km = 5,
-  stay_date_from = [90gg fa], stay_date_to = [oggi],
+  stay_date_from = [90 days ago], stay_date_to = [today],
   buckets = '[{"aggregationType":"Terms","field":"user.countryCode","order":"Desc","size":20}]',
   metrics = '[{"aggregationType":"Count"},{"aggregationType":"Average","field":"numberOfNights"}]'
 )
@@ -138,9 +138,9 @@ destination_reservations_run_report(
 
 ---
 
-## Mapping Paese → Lingua
+## Country → Language mapping
 
-| Paese                    | Lingua |
+| Country                   | Language |
 |--------------------------|--------|
 | France                   | FR     |
 | Germany, Austria, CH(DE) | DE     |
@@ -165,34 +165,34 @@ destination_reservations_run_report(
 | Turkey                   | TR     |
 | Arab countries           | AR     |
 
-Nota: paesi multilingue (Belgio, Svizzera, Canada) → segnalare ambiguità.
+Note: multilingual countries (Belgium, Switzerland, Canada) → flag ambiguity.
 
 ---
 
-## Output Scenario 9A — Matrice di Priorità
+## Scenario 9A Output — Priority Matrix
 
-### Formula (pesi adattati ai tool disponibili)
-- Entrambi: ISSUES=40%, TRAFFIC=30%, DEMAND=30%
-- Solo GA4: ISSUES=50%, TRAFFIC=50%
-- Solo DL: ISSUES=50%, DEMAND=50%
+### Formula (weights adapted to available tools)
+- Both: ISSUES=40%, TRAFFIC=30%, DEMAND=30%
+- GA4 only: ISSUES=50%, TRAFFIC=50%
+- DL only: ISSUES=50%, DEMAND=50%
 
-### Tabella
-| # | Lingua | Issues ❌ | Issues ⚠️ | Compl.% | Traffico% | Domanda% | Trend | 🏆 Priorità |
-Colonne Traffico/Domanda/Trend solo se rispettivo tool disponibile.
+### Table
+| # | Language | Issues ❌ | Issues ⚠️ | Compl.% | Traffic% | Demand% | Trend | 🏆 Priority |
+Traffic/Demand/Trend columns only if the respective tool is available.
 
-### Raccomandazione (solo Sonnet/Opus)
-Narrativa con motivazione per ogni livello di priorità.
-Haiku: solo tabella, nessuna narrativa.
+### Recommendation (Sonnet/Opus only)
+Narrative with a rationale for each priority level.
+Haiku: table only, no narrative.
 
-## Output Scenario 9B — Mappa Opportunità
+## Scenario 9B Output — Opportunity Map
 
-### Mercati non coperti
-Paesi con >= 5% traffico O domanda la cui lingua NON è in ALL_ENABLED_LANGUAGES.
+### Uncovered markets
+Countries with >= 5% traffic OR demand whose language is NOT in ALL_ENABLED_LANGUAGES.
 
-### Mercati sottovalutati
-Lingue abilitate dove traffico/domanda è sorprendentemente alta.
+### Undervalued markets
+Enabled languages where traffic/demand is surprisingly high.
 
-### Tono raccomandazioni
-Insight data-driven, MAI raccomandazioni di investimento.
-"I dati suggeriscono", "potrebbe intercettare",
-"da valutare sulla base della strategia commerciale".
+### Recommendation tone
+Data-driven insight, NEVER investment recommendations.
+"The data suggests", "could capture", "worth evaluating based on your
+commercial strategy".

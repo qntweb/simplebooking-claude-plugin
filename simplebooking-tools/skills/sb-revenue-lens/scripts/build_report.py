@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-sb-revenue-lens — generatore report brandizzato SimpleBooking.
+sb-revenue-lens — branded SimpleBooking report generator.
 
-Trasforma un JSON di analisi (prodotto dalle lenti) nell'HTML brandizzato con il
-layout approvato: header, domanda, sintesi, grafici domanda/LOS (Chart.js),
-segnali per lente con tabelle evidenze + callout, mappa date/restrizioni a
-calendario, blocco limiti, spazio eventi, opzioni.
+Turns an analysis JSON (produced by the lenses) into the approved branded
+HTML layout: header, question, summary, demand/LOS charts (Chart.js),
+per-lens signals with evidence tables + callouts, date/restriction calendar
+map, limits block, events space, options.
 
-Uso:
+Usage:
     python build_report.py input.json -o report.html
 
-Nessuna dipendenza esterna (solo stdlib). Chart.js viene caricato da CDN nel file
-risultante. Vedi scripts/sample_hotel_d.json per lo schema completo dell'input.
+No external dependencies (stdlib only). Chart.js is loaded from a CDN in the
+resulting file. See scripts/sample_hotel_d.json for the full input schema.
 """
 import argparse, html, json, calendar as _cal
 
@@ -61,7 +61,7 @@ footer{background:var(--navy);color:#c8d6e5;font-size:12px;padding:18px 40px;tex
 def esc(s): return html.escape(str(s), quote=True)
 
 def cell(c):
-    """Una cella tabella: stringa semplice o {'tag':'t-or','text':'...'}."""
+    """A table cell: a plain string or {'tag':'t-or','text':'...'}."""
     if isinstance(c, dict):
         return f'<span class="tag {esc(c.get("tag",""))}">{esc(c.get("text",""))}</span>'
     return esc(c)
@@ -79,17 +79,17 @@ def lens_block(l):
     h = [f'<div class="lens"><h3>{esc(l["title"])}</h3>']
     if l.get('rule'): h.append(f'<p class="rule">{esc(l["rule"])}</p>')
     if l.get('table'): h.append(table(l['table']['headers'], l['table']['rows']))
-    if l.get('callout'): h.append(f'<div class="callout">{l["callout"]}</div>')  # HTML consentito
-    if l.get('note'): h.append(f'<p class="small">{l["note"]}</p>')              # HTML consentito
+    if l.get('callout'): h.append(f'<div class="callout">{l["callout"]}</div>')  # HTML allowed
+    if l.get('note'): h.append(f'<p class="small">{l["note"]}</p>')              # HTML allowed
     h.append('</div>')
     return ''.join(h)
 
 def calendar_grid(cal_id, year, month, colors):
-    """colors: {giorno(int): classe('red'|'or'|'y'|'gr'|'past')}. first_dow/days calcolati."""
+    """colors: {day(int): class('red'|'or'|'y'|'gr'|'past')}. first_dow/days computed."""
     first_weekday, days = _cal.monthrange(year, month)  # Mon=0
     first_dow = first_weekday + 1                        # 1..7
     out = [f'<div class="grid" id="{cal_id}">']
-    for d in ['L','M','M','G','V','S','D']:
+    for d in ['M','T','W','T','F','S','S']:
         out.append(f'<div class="dow">{d}</div>')
     for _ in range(1, first_dow):
         out.append('<div></div>')
@@ -104,7 +104,7 @@ def legend(items):
     return f'<div class="legend" style="margin-bottom:10px">{sp}</div>'
 
 def chart_js(canvas_id, labels, values, label, color_rule=None, title=None):
-    """color_rule: lista di (soglia, colore) decrescente; sotto -> ultimo colore."""
+    """color_rule: list of (threshold, color) in descending order; below -> last color."""
     import json as _j
     colors_js = "ctx=>{const v=ctx.raw;" + "".join(
         f"if(v>={t})return '{c}';" for t, c in (color_rule or [])
@@ -121,7 +121,7 @@ new Chart(document.getElementById('{canvas_id}'),{{
 
 def build(data):
     P, scripts = [], []
-    P.append(f'<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">')
+    P.append(f'<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">')
     P.append('<meta name="viewport" content="width=device-width, initial-scale=1.0">')
     P.append(f'<title>SimpleBooking · Revenue Lens — {esc(data["hotel_name"])}</title>')
     P.append('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>')
@@ -133,18 +133,18 @@ def build(data):
     P.append(f'<div class="meta">{pills(data.get("pills", []))}</div></header>')
     P.append('<div class="pad">')
 
-    # la domanda
-    P.append('<h2>La domanda</h2>')
+    # the question
+    P.append('<h2>The question</h2>')
     P.append(f'<p class="q">"{esc(data["question"])}"</p>')
     if data.get('lenses_active'):
-        P.append(f'<p class="small">Lenti attivate: {data["lenses_active"]}</p>')
+        P.append(f'<p class="small">Triggered lenses: {data["lenses_active"]}</p>')
 
-    # sintesi
-    P.append('<h2>Sintesi</h2>')
-    P.append(f'<div class="lead">{data["summary"]}</div>')  # HTML consentito
+    # summary
+    P.append('<h2>Summary</h2>')
+    P.append(f'<div class="lead">{data["summary"]}</div>')  # HTML allowed
 
-    # quadro periodo + grafici
-    P.append('<h2>Quadro del periodo — domanda di destinazione</h2>')
+    # period overview + charts
+    P.append('<h2>Period overview — destination demand</h2>')
     charts = data.get('charts', {})
     if charts.get('los'):
         P.append('<div class="two"><div class="chartbox"><canvas id="demand" height="170"></canvas></div>')
@@ -154,22 +154,22 @@ def build(data):
     if charts.get('caption'):
         P.append(f'<p class="small">{charts["caption"]}</p>')
     dm = charts['demand']
-    scripts.append(chart_js('demand', dm['labels'], dm['values'], dm.get('label','Ricerche / settimana'),
+    scripts.append(chart_js('demand', dm['labels'], dm['values'], dm.get('label','Searches / week'),
                             dm.get('color_rule'), dm.get('title')))
     if charts.get('los'):
         lo = charts['los']
-        scripts.append(chart_js('los', lo['labels'], lo['values'], lo.get('label','Ricerche per LOS'),
+        scripts.append(chart_js('los', lo['labels'], lo['values'], lo.get('label','Searches per LOS'),
                                 lo.get('color_rule'), lo.get('title')))
 
-    # segnali per lente
-    P.append('<h2>Segnali per lente</h2>')
+    # signals per lens
+    P.append('<h2>Signals per lens</h2>')
     for l in data.get('lenses', []):
         P.append(lens_block(l))
 
-    # mappa date
+    # date map
     dmap = data.get('date_map')
     if dmap:
-        P.append(f'<h2>{esc(dmap.get("heading","Mappa date"))}</h2>')
+        P.append(f'<h2>{esc(dmap.get("heading","Date map"))}</h2>')
         P.append(legend(dmap['legend']))
         for c in dmap['calendars']:
             P.append(f'<div class="cal"><h4>{esc(c["title"])}</h4>')
@@ -178,24 +178,24 @@ def build(data):
         if dmap.get('note'):
             P.append(f'<p class="small">{dmap["note"]}</p>')
 
-    # limiti
-    P.append('<h2>Cosa NON vede questa analisi</h2>')
-    P.append(f'<div class="limits">{data["limits"]}</div>')  # HTML consentito
+    # limits
+    P.append('<h2>What this analysis does NOT see</h2>')
+    P.append(f'<div class="limits">{data["limits"]}</div>')  # HTML allowed
 
-    # eventi
+    # events
     if data.get('events'):
-        P.append('<h2>Eventi — la parola all\'hotel</h2>')
+        P.append('<h2>Events — over to the hotel</h2>')
         P.append(f'<div class="ev">{data["events"]}</div>')
 
-    # opzioni
+    # options
     if data.get('options'):
-        P.append('<h2>Prossimi passi (opzioni)</h2><ul class="opts">')
+        P.append('<h2>Next steps (options)</h2><ul class="opts">')
         for o in data['options']:
-            P.append(f'<li>{o}</li>')  # HTML consentito
+            P.append(f'<li>{o}</li>')  # HTML allowed
         P.append('</ul>')
 
     P.append('</div>')  # .pad
-    P.append(f'<footer>{esc(data.get("footer","SimpleBooking · Revenue Lens — generato da sb-revenue-lens · dati MCP SimpleBooking"))}</footer>')
+    P.append(f'<footer>{esc(data.get("footer","SimpleBooking · Revenue Lens — generated by sb-revenue-lens · SimpleBooking MCP data"))}</footer>')
     P.append('</div>')  # .wrap
     P.append('<script>' + '\n'.join(scripts) + '</script>')
     P.append('</body></html>')
@@ -203,7 +203,7 @@ def build(data):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('input', help='JSON di analisi')
+    ap.add_argument('input', help='analysis JSON')
     ap.add_argument('-o', '--output', default='report.html')
     a = ap.parse_args()
     with open(a.input, encoding='utf-8') as f:
@@ -211,7 +211,7 @@ def main():
     htmlout = build(data)
     with open(a.output, 'w', encoding='utf-8') as f:
         f.write(htmlout)
-    print(f'Report scritto in {a.output} ({len(htmlout)} byte)')
+    print(f'Report written to {a.output} ({len(htmlout)} bytes)')
 
 if __name__ == '__main__':
     main()

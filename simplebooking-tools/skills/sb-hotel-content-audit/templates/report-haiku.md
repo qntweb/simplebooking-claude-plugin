@@ -1,31 +1,31 @@
-# Template Report — Haiku (Semplificato)
+# Report Template — Haiku (Simplified)
 
-## Regole Haiku
+## Haiku Rules
 
-1. **MICRO-BATCH PROCESSING:** Per ogni sezione × lingua:
-   chiama API → confronta con master → scrivi riga → butta dati grezzi.
-   NON accumulare dati in memoria.
+1. **MICRO-BATCH PROCESSING:** For each section × language:
+   call API → compare against master → write row → discard raw data.
+   Do NOT accumulate data in memory.
 
-2. **SOLO REGOLE MECCANICHE:** Applica Regole 1→6 (config/rules.md).
-   NON fare analisi qualitative (USP, tone, creatività).
-   NON suggerire riscritture di testo.
+2. **MECHANICAL RULES ONLY:** Apply Rules 1→6 (config/rules.md).
+   Do NOT perform qualitative analysis (USP, tone, creativity).
+   Do NOT suggest text rewrites.
 
-3. **TEMPLATE RIGIDO:** Compila esattamente questa struttura.
-   NON aggiungere sezioni narrative. NON aggiungere commenti discorsivi.
+3. **RIGID TEMPLATE:** Fill in exactly this structure.
+   Do NOT add narrative sections. Do NOT add discursive comments.
 
-4. **Se il contesto diventa lungo:** scrivi un risultato parziale
-   e continua. Meglio report in due parti che report incompleto.
+4. **If the context gets long:** write a partial result
+   and continue. A report in two parts is better than an incomplete one.
 
 ---
 
-Copia e compila ESATTAMENTE:
+Copy and fill in EXACTLY:
 
-# 🏨 Content Audit Report — [NOME_HOTEL]
-📅 [DATA] | 🆔 ID: [PROPERTY_ID] | 🌍 Master: [MASTER_LANG]
+# 🏨 Content Audit Report — [HOTEL_NAME]
+📅 [DATE] | 🆔 ID: [PROPERTY_ID] | 🌍 Master: [MASTER_LANG]
 
 ## 📊 Executive Summary
 
-| Sezione | [L1] (M) | [L2] | [L3] | [LN] |
+| Section | [L1] (M) | [L2] | [L3] | [LN] |
 |---------|:---:|:---:|:---:|:---:|
 | Hotel Info | [S] | [S] | [S] | [S] |
 | Room Types | [S] | [S] | [S] | [S] |
@@ -36,61 +36,61 @@ Copia e compila ESATTAMENTE:
 | Meal Plans | [S] | [S] | [S] | [S] |
 | Cancellation | [S] | [S] | [S] | [S] |
 
-[S] = stato peggiore della sezione per quella lingua.
-❌ almeno 1 critico | ⚠️ almeno 1 warning (0 critici) | ✅ tutto ok | ➖ non auditata
+[S] = worst status in the section for that language.
+❌ at least 1 critical | ⚠️ at least 1 warning (0 critical) | ✅ all ok | ➖ not audited
 
-**Totali: ✅ [n] | ⚠️ [n] | ❌ [n] | ⚪ [n]**
-**Completezza: [X]%** (campi ✅+⚪ / totale × 100)
+**Totals: ✅ [n] | ⚠️ [n] | ❌ [n] | ⚪ [n]**
+**Completeness: [X]%** (✅+⚪ fields / total × 100)
 
-## 🔍 Dettaglio per Sezione
+## 🔍 Detail by Section
 
-(Solo se REPORT_DETAIL = "dettagliato")
-Ripeti PER OGNI sezione auditata:
+(Only if REPORT_DETAIL = "detailed")
+Repeat FOR EACH audited section:
 
-### [EMOJI] [NOME_SEZIONE]
+### [EMOJI] [SECTION_NAME]
 
-| Elemento | Campo | [L1](M) | [L2] | [L3] | [LN] |
+| Item | Field | [L1](M) | [L2] | [L3] | [LN] |
 |----------|-------|:---:|:---:|:---:|:---:|
-| [nome] | nome | ✅ | ✅ | ❌ vuoto | ✅ |
-| [nome] | descrizione | ✅ 420c | ⚠️ =M | ❌ vuoto | ⚠️ 85c |
+| [name] | name | ✅ | ✅ | ❌ empty | ✅ |
+| [name] | description | ✅ 420c | ⚠️ =M | ❌ empty | ⚠️ 85c |
 
-## 📋 Lista Issue
+## 📋 Issue List
 
-| # | Severity | Sezione | Elemento | Campo | Lingua | Problema |
+| # | Severity | Section | Item | Field | Language | Issue |
 |---|:---:|---------|----------|-------|--------|----------|
-| 1 | ❌ | [sez] | [elem] | [campo] | [lang] | [problema] |
+| 1 | ❌ | [sect] | [item] | [field] | [lang] | [issue] |
 
-Ordinata per: severity (❌ prima) → sezione → elemento → lingua.
-Includere TUTTE le issue. NON riassumere o raggruppare.
+Sorted by: severity (❌ first) → section → item → language.
+Include ALL issues. Do NOT summarize or group them.
 
 ---
 
-## Step 9 — Output semplificato
+## Step 9 — Simplified output
 
-### 9A — Triage (se problemi significativi)
+### 9A — Triage (if significant issues)
 
-| # | Lingua | ❌ | ⚠️ | Compl.% | Traffico% | Domanda% | Priorità |
+| # | Language | ❌ | ⚠️ | Compl.% | Traffic% | Demand% | Priority |
 |---|--------|---|---|---------|-----------|----------|----------|
-| 1 | FR | 5 | 3 | 28% | 22% | 18% | 🔴 ALTA |
+| 1 | FR | 5 | 3 | 28% | 22% | 18% | 🔴 HIGH |
 
-Priorità = ranking: (❌×3 + ⚠️) × (Traffico% + Domanda%) DESC.
+Priority = ranking: (❌×3 + ⚠️) × (Traffic% + Demand%) DESC.
 🔴 top 33% | 🟡 mid 33% | 🟢 bottom 33%.
-Colonne analytics solo se tool disponibile. Nessuna narrativa.
+Analytics columns only if the tool is available. No narrative.
 
-### 9B — Opportunità (se audit buono)
+### 9B — Opportunity (if the audit is good)
 
-| # | Paese | Lingua | Abilitata? | Traffico% | Domanda% | Opportunità |
+| # | Country | Language | Enabled? | Traffic% | Demand% | Opportunity |
 |---|-------|--------|:---:|-----------|----------|-------------|
-| 1 | South Korea | KO | ❌ | 8% | 12% | 🔴 ALTA |
+| 1 | South Korea | KO | ❌ | 8% | 12% | 🔴 HIGH |
 
-Solo mercati >= 5% traffico O domanda con lingua NON abilitata.
-Nessuna narrativa. Solo tabella.
+Only markets with >= 5% traffic OR demand with a language NOT enabled.
+No narrative. Table only.
 
 ---
 
 ## Export
 
 PDF → /mnt/skills/public/pdf/SKILL.md
-Excel → /mnt/skills/public/xlsx/SKILL.md — Fogli: "Summary", "Issues", "Triage"/"Opportunities"
+Excel → /mnt/skills/public/xlsx/SKILL.md — Sheets: "Summary", "Issues", "Triage"/"Opportunities"
 CSV → Header: Section,Item,Field,Language,Status,Issue,Severity,CharCount,MasterCharCount,IsMaster,TrafficPct,DemandPct,PriorityScore
 JSON → meta + summary + issues[] + triage[] + opportunities[]

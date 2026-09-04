@@ -1,127 +1,122 @@
-# sb-revenue-lens — Specifica formale dei detector
+# sb-revenue-lens — Formal detector specification
 
-Ogni lente è **input → regola → output**. Il modello *narra* il risultato della
-regola; non inventa la regola. Tutte le soglie sono in `config/defaults.yaml` e
-sono **relative** al periodo/hotel.
-
----
-
-## Regola trasversale R0 — Riconciliazione disponibilità (OBBLIGATORIA)
-
-`availability_calendar` e `query_bookable_options` **non sempre concordano**, e
-"nessuna opzione" ha tre cause diverse da distinguere prima di concludere:
-
-1. **Sold-out reale** — `Can Stay = No` nel calendario.
-2. **Tagliata da restrizione** — calendario `Can Stay = Yes` ma `query` multi-notte
-   vuota perché una notte interna è MinLOS/sold-out (→ vedi L3 gap-night).
-3. **Mismatch allocazione** — nessuna camera per quella composizione ospiti.
-
-Procedura: se una `query` multi-notte torna vuota ma il calendario dà disponibile,
-**ri-prova con 1 notte** sulle singole date dell'intervallo. La notte che fallisce
-da sola è il blocco. (Test: Hotel D 23→25 giu vuoto, ma 23→24 = 324€ → il blocco era
-il 24; Hotel B 19→21 giu vuoto, ma 19→20 = 295€ → il blocco era il 20.)
-
-> Non fidarsi mai del solo calendario: nel test diceva "Can Stay: Yes" su notti
-> che in pratica spezzavano i soggiorni.
+Each lens is **input → rule → output**. The model *narrates* the rule's
+result; it does not invent the rule. All thresholds are in
+`config/defaults.yaml` and are **relative** to the period/hotel.
 
 ---
 
-## L1 — Money-leak ("dove sto lasciando soldi?")
+## Cross-cutting rule R0 — Availability reconciliation (MANDATORY)
 
-**Input:** demand per settimana; availability calendar; prezzi su date interessanti + 1 baseline soft.
+`availability_calendar` and `query_bookable_options` **don't always agree**,
+and "no options" has three different causes to distinguish before concluding
+anything:
 
-**Regola — segnala una notte se almeno uno:**
-- **L1a Ultima-camera-a-tariffa-piatta:** `tight` (max disponibili su tutte le
-  categorie ≤ `tight_max_available`) **E** prezzo notte ≤ mediana_periodo ×
-  (1 + `premium_expected_min`). → scarsità non prezzata.
-- **L1b Orphan night ad alto valore:** notte libera adiacente a un sold-out (vedi
-  R0/L3) in una settimana ad alta domanda (top tercile). → notte cara che diventa
-  invendibile in un multi-notte.
-- **L1c Domanda alta / io largo & cheap:** settimana top-tercile di domanda **E**
-  copertura categorie alta **E** prezzo quartile basso. → potresti spingere il prezzo.
+1. **Genuinely sold out** — `Can Stay = No` in the calendar.
+2. **Cut off by a restriction** — calendar says `Can Stay = Yes` but a
+   multi-night `query` comes back empty because an internal night is
+   MinLOS/sold-out (→ see L3 gap-night).
+3. **Allocation mismatch** — no room for that guest composition.
 
-**Output:** lista notti ordinata per valore stimato, con il **tipo** (a/b/c) e una
-domanda di verifica (mai un ordine).
+Procedure: if a multi-night `query` comes back empty but the calendar shows
+availability, **retry with 1 night** on each individual date in the range.
+The night that fails alone is the blocker.
 
-**Edge/control:** se l'hotel è largo ma i prezzi sono già differenziati weekend↔soft
-(es. Hotel A: Jun 19 ~447€ vs Jul 26 ~395€) **non** segnalare L1c: il pricing sta
-già lavorando. Evita il falso allarme.
+> Never trust the calendar alone: it can say "Can Stay: Yes" on nights that
+> in practice break up a stay.
 
 ---
 
-## L2 — Rischio invenduto ("quali date rischiano l'invenduto?")
+## L1 — Money-leak ("where am I leaving money on the table?")
 
-**Input:** demand per settimana + `daysAhead`; availability; prezzo campione.
+**Input:** demand per week; availability calendar; prices on the dates of interest + 1 soft baseline.
 
-**Regola — segnala un blocco di date se TUTTI:**
-- domanda d'area bottom-tercile (o in calo monotono verso fine periodo);
-- copertura categorie ≥ `wide_open_room_types_min`;
-- prezzo quartile basso;
-- **dentro/oltre** la booking window (`giorni_residui < anticipo_medio_settimana`).
+**Rule — flag a night if at least one:**
+- **L1a Last-room-at-flat-rate:** `tight` (max rooms available across all
+  categories ≤ `tight_max_available`) **AND** nightly price ≤ period_median ×
+  (1 + `premium_expected_min`). → scarcity not priced in.
+- **L1b High-value orphan night:** a free night adjacent to a sold-out night
+  (see R0/L3) in a high-demand week (top tercile). → an expensive night that
+  becomes unsellable as part of a multi-night stay.
+- **L1c High demand / I'm wide open & cheap:** top-tercile demand week **AND**
+  high category coverage **AND** bottom-quartile price. → you could push the price.
 
-**Output:** date soft + "quanto sei in ritardo sul ciclo" + leve come **opzioni**
-(offerta breve, MinLOS basso, pacchetto), non prescrizioni.
+**Output:** list of nights ranked by estimated value, with the **type** (a/b/c)
+and a verification question (never an order).
 
-**Test:** fine luglio su tutti i 4 hotel = domanda minima + molte camere + prezzo
-più basso del periodo (Hotel D 184€, Hotel B 241€, Hotel A 370€). Scatta in modo coerente.
-
----
-
-## L3 — Restrizioni vs LOS della domanda ("le mie regole mi tagliano fuori?")
-
-**Input:** demand `numberOfNights` (distribuzione); availability calendar (MinLOS + gap night via R0).
-
-**Regola — due varianti:**
-- **L3a Gap-night:** esiste una notte `Can Stay = Yes` non vendibile in 2-3 notti
-  perché una notte adiacente è sold-out. Quantifica la notte persa (prezzo notte ×
-  numero notti orfane). *Test Hotel B: notti 7 e 20 giugno isolate → la notte del 19
-  (295€) non vendibile a chi cerca ven-dom.*
-- **L3b MinLOS vs short-stay:** quota ricerche short-stay (≤ `short_stay_nights_max`)
-  ≥ `short_stay_share_flag` **E** MinLOS sulle date > `short_stay_nights_max`.
-  → stai rifiutando domanda matchabile.
-
-**Output:** quanta domanda *matchabile* stai rifiutando e dove; per L3a suggerisci
-apertura 1-notte/orphan; per L3b **presenta come TRADE-OFF, non errore**.
-
-**Nota critica (test Hotel C):** MinLOS 4 a luglio blocca i 2-3 notti, ma in
-quella destinazione la ricerca #1 è 7 notti (26k). Tuttavia short-stay 1-3 notti pesa
-~38k ricerche. Quindi la regola scatta, ma la lettura corretta è: *"rifiuti molta
-domanda corta; se la domanda 7-notti non riempie luglio, le MinLOS 4 ti lasciano
-scoperto. È una scelta voluta?"* — mai dire "sbagli", perché long-stay può essere
-strategia di stagione.
+**Edge/control:** if the hotel is wide open but prices are already
+weekend/weekday-differentiated, **don't** flag L1c — pricing is already
+working. Avoid the false alarm.
 
 ---
 
-## L4 — Parità OTA ("il mio diretto batte le OTA?")
+## L2 — Unsold risk ("which dates risk going unsold?")
 
-**Pre-condizione:** `rate_match_enabled = true` (i 4 hotel test ce l'hanno; se no, salta e dillo).
-**Input:** `query_bookable_options` → Query ID → `get_ota_prices` su date chiave.
-**Regola:** segnala le date dove una OTA è sotto il diretto.
-**Output:** elenco date di disparità con scarto assoluto/%.
+**Input:** demand per week + `daysAhead`; availability; sample price.
 
----
+**Rule — flag a block of dates if ALL:**
+- bottom-tercile area demand (or monotonically declining toward the end of the period);
+- category coverage ≥ `wide_open_room_types_min`;
+- bottom-quartile price;
+- **inside/beyond** the booking window (`days_left < average_week_lead_time`).
 
-## L5 — Runway / anticipo ("quanto tempo ho per agire?")
-
-**Input:** demand `daysAhead` per periodo; calendar (giorni mancanti).
-**Regola:** `anticipo_medio` vs `giorni_residui` → urgenza (agire ora / c'è tempo / finestra chiusa).
-**Output:** per blocco di date, livello di urgenza.
+**Output:** soft dates + "how far behind you are on the cycle" + possible
+levers (short offer, low MinLOS, package) as **options**, not prescriptions.
 
 ---
 
-## L6 — Posizionamento domanda (lente soft, opzionale)
+## L3 — Restrictions vs demand LOS ("are my own rules shutting me out?")
 
-**Input:** demand `user.countryCode`, `guestType`, `numberOfKids`, `device`; room types/servizi/lingue.
-**Regola:** grande domanda di un mercato/segmento vs contenuto/camere/lingue non allineati.
-**Output:** gap di posizionamento. Esplicitamente qualitativa.
+**Input:** demand `numberOfNights` (distribution); availability calendar (MinLOS + gap night via R0).
+
+**Rule — two variants:**
+- **L3a Gap-night:** a night exists with `Can Stay = Yes` that can't be sold
+  as part of a 2-3 night stay because an adjacent night is sold out. Quantify
+  the lost night (nightly price × number of orphan nights).
+- **L3b MinLOS vs short-stay:** share of short-stay searches
+  (≤ `short_stay_nights_max`) ≥ `short_stay_share_flag` **AND** MinLOS on those
+  dates > `short_stay_nights_max`. → matchable demand is being turned away.
+
+**Output:** how much *matchable* demand is being turned away and where; for
+L3a suggest opening a 1-night/orphan-night stay; for L3b **present it as a
+TRADE-OFF, not an error**.
 
 ---
 
-## Note di robustezza (apprese dal test)
+## L4 — OTA parity ("does my direct rate beat the OTAs?")
 
-- **Domanda d'area = destinazione, non proprietà.** Hotel a 200m hanno demand uguale (Hotel A=Hotel B). Non spacciarla per domanda dell'hotel.
-- **"Available N"** è per categoria+tariffa, non inventario di casa.
-- **Struttura tariffaria varia:** alcuni hotel espongono *Offerte* (Hotel D, Hotel A, Hotel B), altri *Rate Plan* (Hotel C). Il detector legge il "cheapest" a prescindere dalla struttura.
-- **Tasse/extra** (es. city tax €6/notte su un hotel del test) possono non essere nel prezzo esposto: non sommarle a mano, segnala solo che esistono.
-- **Mese corrente:** parti da oggi (date passate non interrogabili) e dillo.
-- **Controllo falsi allarmi:** un hotel sano e ben prezzato (Hotel A) deve produrre poche o zero segnalazioni. Se una lente "spara" su tutto, la soglia è sbagliata.
+**Pre-condition:** `rate_match_enabled = true` (otherwise skip and say so).
+**Input:** `query_bookable_options` → Query ID → `get_ota_prices` on key dates.
+**Rule:** flag dates where an OTA is priced below direct.
+**Output:** list of disparity dates with absolute/% gap.
+
+---
+
+## L5 — Runway / lead time ("how much time do I have to act?")
+
+**Input:** demand `daysAhead` per period; calendar (days remaining).
+**Rule:** `average_lead_time` vs `days_left` → urgency (act now / there's time / window closed).
+**Output:** urgency level per block of dates.
+
+---
+
+## L6 — Demand positioning ("soft" lens, optional)
+
+**Input:** demand `user.countryCode`, `guestType`, `numberOfKids`, `device`; room types/services/languages.
+**Rule:** large demand from a market/segment vs misaligned content/rooms/languages.
+**Output:** positioning gap. Explicitly qualitative.
+
+---
+
+## Robustness notes
+
+- **Area demand = destination, not property.** Two hotels 200m apart get
+  identical demand numbers. Don't pass it off as the hotel's own demand.
+- **"Available N"** is per category+rate, not house inventory.
+- **Rate structure varies:** some hotels expose *Offers*, others expose *Rate
+  Plans*. The detector reads the "cheapest" regardless of the structure.
+- **Taxes/extras** (e.g. city tax per night) may not be included in the
+  displayed price: don't add them by hand, just flag that they exist.
+- **Current month:** start from today (past dates aren't queryable) and say so.
+- **False-alarm check:** a healthy, well-priced hotel should produce few or
+  zero flags. If a lens "fires" on everything, the threshold is wrong.

@@ -1,6 +1,6 @@
 {
   "name": "simplebooking-tools",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "SimpleBooking data analysis skills (reservations, revenue, content, demand) for hotel customers, built on the IBE and BackOffice MCP connectors.",
   "author": {
     "name": "Sergio Farinelli"

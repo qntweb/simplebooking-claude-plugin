@@ -1,43 +1,42 @@
-# sb-revenue-lens — Struttura report brandizzato (modalità `report`)
+# sb-revenue-lens — Branded report structure (`report` mode)
 
-Il report è firmato **SimpleBooking** e scritto per l'albergatore. Formati:
-PDF/HTML (riuso degli helper docx/pdf/HTML esistenti). Lingua = conversazione.
+The report is signed **SimpleBooking** and written for the hotelier. Formats:
+PDF/HTML (reusing the existing docx/pdf/HTML helpers). Language = conversation.
 
-## Sezioni (in ordine)
+## Sections (in order)
 
-1. **Intestazione** — logo SimpleBooking, nome hotel, stelle, città, periodo
-   analizzato, data analisi, raggio domanda d'area usato.
+1. **Header** — SimpleBooking logo, hotel name, stars, city, period analyzed,
+   analysis date, area demand radius used.
 
-2. **La domanda** — la domanda dell'albergatore in chiaro (es. "Dove sto
-   lasciando soldi a giugno?") e quali lenti sono state attivate.
+2. **The question** — the hotelier's question in plain language (e.g. "Where
+   am I leaving money on the table in June?") and which lenses were triggered.
 
-3. **Sintesi in una riga** — il messaggio chiave per la proprietà.
+3. **One-line summary** — the key message for the property.
 
-4. **Quadro del periodo** — curva di domanda d'area per settimana (tabella +
-   grafico), anticipo medio, distribuzione LOS richiesta. Etichetta: "domanda di
-   destinazione, non dell'hotel".
+4. **Period overview** — area demand curve per week (table + chart), average
+   lead time, requested LOS distribution. Label: "destination demand, not the
+   hotel's own".
 
-5. **Segnali per lente** — una sottosezione per ogni lente attivata:
-   - cosa ha trovato il detector (regola → date),
-   - tabella evidenze (Data | Disponibilità | Prezzo notte | Domanda settimana),
-   - lettura in linguaggio naturale,
-   - opzioni operative (non prescrizioni).
+5. **Signals per lens** — a subsection for each triggered lens:
+   - what the detector found (rule → dates),
+   - evidence table (Date | Availability | Nightly price | Weekly demand),
+   - plain-language reading,
+   - operational options (not prescriptions).
 
-6. **Mappa date** — calendario del periodo con codifica:
-   🔴 sold-out · 🟠 tight/leak · 🟡 gap-night/MinLOS · 🟢 soft/invenduto.
+6. **Date map** — calendar of the period with coding:
+   🔴 sold-out · 🟠 tight/leak · 🟡 gap-night/MinLOS · 🟢 soft/unsold.
 
-7. **Cosa NON vede questa analisi** — blocco fisso: no on-the-books, no pickup,
-   no competitor reali (solo parità OTA se attiva), no fonte eventi. Fatto vs
-   inferenza.
+7. **What this analysis does NOT see** — fixed block: no on-the-books, no
+   pickup, no real competitors (only OTA parity if active), no events source.
+   Fact vs inference.
 
-8. **Eventi** — spazio per l'albergatore: "su queste date sei pieno/vuoto — sai
-   se ci sono eventi/fiere?" (la skill non li afferma).
+8. **Events** — space for the hotelier: "you're full/empty on these dates —
+   do you know of any events or fairs?" (the skill never asserts them).
 
-9. **Prossimi passi** — opzioni + offerta di scan schedulato / batch portfolio.
+9. **Next steps** — options + offer of a scheduled scan / portfolio batch.
 
-## Regole di stile
-- Niente gergo RMS. Frasi brevi.
-- Ogni numero ha la sua fonte nella tabella evidenze.
-- Le raccomandazioni sono **opzioni con condizione** ("se la domanda regge, …"),
-  mai ordini.
-- Sempre presente la sezione 7 (limiti).
+## Style rules
+- No RMS jargon. Short sentences.
+- Every number has its source in the evidence table.
+- Recommendations are **conditional options** ("if demand holds, …"), never orders.
+- Section 7 (limits) is always present.

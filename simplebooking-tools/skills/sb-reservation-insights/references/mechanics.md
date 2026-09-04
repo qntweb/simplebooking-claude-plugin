@@ -110,11 +110,11 @@ same field as `Portal`** (see `fields.md`, `Portal` is almost always empty; do n
 two despite the similar name). Bucket keys resolve to `Name (Code)`, e.g. `Booking.com (XML)
 (BOOKINGXML)`, `Expedia (XML) (EXPEDIA)`.
 
-**Coverage confirmed live (2026-08-27, property 4233, 2024-09 to 2026-08):** 100% on
-`ChannelType = Indirect` (878 matched, 878 bucketed), **0% on `ChannelType = Direct`** (3,923
-matched, 0 bucketed). On indirect bookings its bucket counts are identical, one for one, to
-`Source` (`BOOKINGXML` 696 = 696, `EXPEDIA` 169 = 169, `VISITRIMINI` 13 = 13) — the only
-difference is cosmetic, a readable name instead of a code.
+**Coverage is not guaranteed on direct bookings.** On a property tested end to end,
+`ChannelType = Indirect` bookings had 100% coverage, while `ChannelType = Direct`
+bookings had 0% — the field is simply not populated on the direct side. On indirect
+bookings its bucket counts matched `Source` one for one (same OTAs, same counts), the
+only difference being a readable name instead of a code.
 
 **Use it for an OTA mix you are about to show someone**: no normalization, no code-to-brand
 lookup. **Keep using `Source`** for anything touching direct, or for cross-referencing

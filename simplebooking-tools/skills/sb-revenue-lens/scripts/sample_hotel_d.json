@@ -1,74 +1,74 @@
 {
-  "hotel_name": "Hotel D — esempio",
+  "hotel_name": "Hotel D — example",
   "stars": "★★★★",
-  "pills": ["Periodo: 5 giu – 31 lug 2026", "Domanda d'area: raggio 12 km", "Rate match: attivo", "Analisi: 5 giu 2026"],
-  "question": "Analizza giugno–luglio: dove sto lasciando soldi e dove rischio l'invenduto?",
-  "lenses_active": "<b>L1 Money-leak</b> · <b>L2 Rischio invenduto</b> · <b>L3a Orphan night</b> · <b>L4 Parità OTA</b>",
-  "summary": "<b>Giugno va difeso al rialzo e \"scucito\" sulle gap-night; fine luglio va stimolato o accettato come riempimento.</b> Le ultime camere di metà giugno partono a 320–344 € con domanda d'area ancora altissima, mentre da fine luglio l'hotel è largo a 184 €. Una notte cara (23 giu, 324 €) si perde perché la notte successiva è piena.",
+  "pills": ["Period: Jun 5 – Jul 31 2026", "Area demand: 12 km radius", "Rate match: active", "Analysis: Jun 5 2026"],
+  "question": "Analyze June–July: where am I leaving money on the table and where do I risk going unsold?",
+  "lenses_active": "<b>L1 Money-leak</b> · <b>L2 Unsold risk</b> · <b>L3a Orphan night</b> · <b>L4 OTA parity</b>",
+  "summary": "<b>June needs to be defended on price and \"unstitched\" on gap-nights; late July needs to be stimulated or accepted as fill-in.</b> The last rooms of mid-June start at €320–344 with area demand still very high, while from late July the hotel is wide open at €184. One expensive night (Jun 23, €324) is lost because the following night is full.",
   "charts": {
     "demand": {
-      "labels": ["31/05","07/06","14/06","21/06","28/06","05/07","12/07","19/07","26/07"],
+      "labels": ["31 May","07 Jun","14 Jun","21 Jun","28 Jun","05 Jul","12 Jul","19 Jul","26 Jul"],
       "values": [12928,27363,25326,21159,15585,14888,12612,11050,6762],
-      "label": "Ricerche area / settimana",
+      "label": "Area searches / week",
       "color_rule": [[20000,"#1b4f7a"],[12000,"#13a89e"]]
     },
-    "caption": "Ricerche nell'area (12 km) per settimana di check-in. La domanda crolla da ~27.000 (metà giugno) a ~6.800 (fine luglio). Soggiorni più richiesti: <b>2 notti</b> (37.903) e <b>3 notti</b> (32.908). Anticipo medio in crescita: 36 → 91 giorni. <i>Dato di destinazione, non dell'hotel.</i>"
+    "caption": "Searches in the area (12 km) per check-in week. Demand drops from ~27,000 (mid-June) to ~6,800 (late July). Most requested stays: <b>2 nights</b> (37,903) and <b>3 nights</b> (32,908). Average lead time growing: 36 → 91 days. <i>Destination data, not the hotel's own.</i>"
   },
   "lenses": [
     {
       "title": "L1 — Money-leak · L3a — Orphan night",
-      "rule": "Regola: ultima camera a tariffa non premiata, e notti libere adiacenti a notti piene in settimana ad alta domanda.",
+      "rule": "Rule: last room at a rate with no premium, and free nights adjacent to full nights in a high-demand week.",
       "table": {
-        "headers": ["Data","Disponibilità","Prezzo/notte","Domanda sett.","Segnale"],
+        "headers": ["Date","Availability","Price/night","Weekly demand","Signal"],
         "rows": [
-          ["Ven 19 giu","1–2 camere","344 €","alta (25.326)",{"tag":"t-or","text":"L1a scarsità"}],
-          ["Mar 23 giu","solo Classic","324 €","alta (21.159)",{"tag":"t-or","text":"L3a orphan"}]
+          ["Fri Jun 19","1–2 rooms","€344","high (25,326)",{"tag":"t-or","text":"L1a scarcity"}],
+          ["Tue Jun 23","Classic only","€324","high (21,159)",{"tag":"t-or","text":"L3a orphan"}]
         ]
       },
-      "note": "La notte del 23 giugno (324 €) non è vendibile in un soggiorno di 2 notti perché il 24 è pieno: chi cerca 23→25 non trova nulla. Con la domanda concentrata su 2–3 notti, è una vendita persa su una data cara."
+      "note": "The night of June 23 (€324) can't be sold as part of a 2-night stay because the 24th is full: a search for Jun 23→25 finds nothing. With demand concentrated on 2–3 nights, this is a lost sale on an expensive date."
     },
     {
-      "title": "L2 — Rischio invenduto",
-      "rule": "Regola: domanda bassa + molte categorie aperte + prezzo basso + dentro la booking window.",
+      "title": "L2 — Unsold risk",
+      "rule": "Rule: low demand + many open categories + low price + inside the booking window.",
       "table": {
-        "headers": ["Data","Disponibilità","Prezzo/notte","Domanda sett.","Segnale"],
+        "headers": ["Date","Availability","Price/night","Weekly demand","Signal"],
         "rows": [
-          ["Dom 26 lug","5 categorie aperte","184 €","bassa (6.762)",{"tag":"t-gr","text":"L2 soft"}]
+          ["Sun Jul 26","5 open categories","€184","low (6,762)",{"tag":"t-gr","text":"L2 soft"}]
         ]
       },
-      "note": "Fine luglio: domanda d'area al minimo, hotel largo, prezzo più basso del periodo (184 € vs 344 € di metà giugno). Sei già oltre l'anticipo medio: il pickup è in ritardo."
+      "note": "Late July: area demand at its lowest, hotel wide open, price the lowest of the period (€184 vs €344 in mid-June). You're already past the average lead time: pickup is behind."
     },
     {
-      "title": "L4 — Parità OTA <span class=\"small\">(soggiorno test 19–21 giu)</span>",
+      "title": "L4 — OTA parity <span class=\"small\">(test stay Jun 19–21)</span>",
       "table": {
-        "headers": ["Canale","Prezzo","vs Diretto"],
+        "headers": ["Channel","Price","vs Direct"],
         "rows": [
-          ["Diretto","657 €","—"],
-          ["Expedia","657 €","allineato"],
-          ["Hotels.com","657 €","allineato"]
+          ["Direct","€657","—"],
+          ["Expedia","€657","aligned"],
+          ["Hotels.com","€657","aligned"]
         ]
       },
-      "note": "Parità rispettata su questa data: il diretto non è scavalcato dalle OTA. Nessun intervento necessario qui."
+      "note": "Parity respected on this date: direct isn't undercut by the OTAs. No action needed here."
     }
   ],
   "date_map": {
-    "heading": "Mappa date",
-    "legend": [["Sold-out","#e1485c"],["Tight / alta domanda","#f0992b"],["Soft / da stimolare","#2fa36b"],["Aperto","#eef2f7"],["Passato","#f3f4f6"]],
+    "heading": "Date map",
+    "legend": [["Sold-out","#e1485c"],["Tight / high demand","#f0992b"],["Soft / to stimulate","#2fa36b"],["Open","#eef2f7"],["Past","#f3f4f6"]],
     "calendars": [
-      {"id":"june","title":"Giugno 2026","year":2026,"month":6,
+      {"id":"june","title":"June 2026","year":2026,"month":6,
        "colors":{"1":"past","2":"past","3":"past","4":"past","10":"red","15":"red","16":"red","18":"red","30":"red","17":"or","19":"or","20":"or","21":"or","23":"or","24":"or","25":"or","26":"or","27":"or","28":"or","29":"or"}},
-      {"id":"july","title":"Luglio 2026","year":2026,"month":7,
+      {"id":"july","title":"July 2026","year":2026,"month":7,
        "colors":{"1":"red","9":"red","10":"red","11":"red","20":"gr","21":"gr","22":"gr","23":"gr","24":"gr","25":"gr","26":"gr","27":"gr","28":"gr","29":"gr","30":"gr","31":"gr"}}
     ],
-    "note": "Colorazione basata su calendario disponibilità (sold-out) + date campione prezzate + curva di domanda. Non ogni singola notte è stata interrogata individualmente."
+    "note": "Coloring based on the availability calendar (sold-out) + sampled priced dates + demand curve. Not every single night was queried individually."
   },
-  "limits": "Questo è un <b>diagnostico domanda-d'area vs disponibilità/prezzo</b>, non un sistema di revenue management. Con i soli dati SimpleBooking <b>non</b> vede: il tuo on-the-books reale né il passo di pickup; le tariffe reali dei competitor (solo parità OTA); una fonte eventi. I prezzi non includono eventuali tasse di soggiorno. Le indicazioni sono <b>opzioni condizionate</b> (\"se la domanda regge…\"), non prescrizioni.",
-  "events": "Su queste date sei pieno: <b>24 giu</b> e il cluster 15–18 giu, 30 giu, 9–11 lug. Confermi se sono legate a eventi o fiere (così tariffiamo di conseguenza i prossimi anni)? La skill rileva i pieni ma non attribuisce la causa.",
+  "limits": "This is an <b>area-demand vs availability/price diagnostic</b>, not a revenue management system. With SimpleBooking data alone it does <b>not</b> see: your actual on-the-books figures or pickup pace; real competitor rates (only OTA parity); an events source. Prices don't include any stay taxes. The pointers are <b>conditional options</b> (\"if demand holds…\"), not prescriptions.",
+  "events": "You're full on these dates: <b>Jun 24</b> and the cluster Jun 15–18, Jun 30, Jul 9–11. Can you confirm whether these are tied to events or fairs (so we can price accordingly in future years)? The skill detects the full dates but doesn't attribute the cause.",
   "options": [
-    "Verificare il <b>floor</b> sulle ultime camere del 19–28 giugno.",
-    "Valutare apertura <b>1-notte</b> sulle notti orfane adiacenti ai sold-out.",
-    "Decidere se <b>stimolare</b> fine luglio (offerta breve / pacchetto) o accettarlo come fill-in.",
-    "Attivare uno <b>scan schedulato</b> che avvisa quando le ultime camere di giugno scendono sotto soglia."
+    "Check the <b>floor</b> on the last rooms of Jun 19–28.",
+    "Consider opening a <b>1-night</b> stay on the orphan nights adjacent to the sold-out dates.",
+    "Decide whether to <b>stimulate</b> late July (short offer / package) or accept it as fill-in.",
+    "Turn on a <b>scheduled scan</b> that alerts when June's last rooms drop below threshold."
   ],
-  "footer": "SimpleBooking · Revenue Lens — generato da sb-revenue-lens · dati MCP SimpleBooking · giu 2026"
+  "footer": "SimpleBooking · Revenue Lens — generated by sb-revenue-lens · SimpleBooking MCP data · Jun 2026"
 }

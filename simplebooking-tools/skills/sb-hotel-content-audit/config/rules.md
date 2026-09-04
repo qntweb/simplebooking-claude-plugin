@@ -1,91 +1,91 @@
-# Regole di Classificazione
+# Classification Rules
 
-Per OGNI campo di OGNI elemento, applica queste regole nell'ordine.
-FERMARSI ALLA PRIMA CHE CORRISPONDE. Un campo ha UN SOLO stato.
+For EVERY field of EVERY item, apply these rules in order.
+STOP AT THE FIRST ONE THAT MATCHES. A field has ONE status only.
 
-## Regola 1 — Campo vuoto?
-Se il campo è vuoto, null, o contiene solo spazi/tag HTML vuoti:
-→ **❌ CRITICO** | Nota: "[Lingua]: campo vuoto"
+## Rule 1 — Empty field?
+If the field is empty, null, or contains only whitespace/empty HTML tags:
+→ **❌ CRITICAL** | Note: "[Language]: empty field"
 
-## Regola 2 — Campo identità?
-Se il campo è un IDENTITY_FIELD E il testo è identico alla lingua master:
-→ **⚪ ATTESO** | Nota: "Identico (atteso)"
+## Rule 2 — Identity field?
+If the field is an IDENTITY_FIELD AND the text is identical to the master language:
+→ **⚪ EXPECTED** | Note: "Identical (expected)"
 
-### Lista IDENTITY_FIELDS:
-- Indirizzi, CAP, città (forma locale)
-- Numeri di telefono, fax
-- Email, URL, link social
-- Coordinate GPS
-- Codici (ID camera, codici tariffari)
-- Nomi di brand, piattaforme, catene
-- Orari (formato numerico)
-- Prezzi e valute
+### IDENTITY_FIELDS list:
+- Addresses, postal codes, city (local form)
+- Phone numbers, fax
+- Emails, URLs, social links
+- GPS coordinates
+- Codes (room IDs, rate codes)
+- Brand, platform, chain names
+- Hours (numeric format)
+- Prices and currencies
 
-## Regola 3 — Testo identico al master?
-Se il campo NON è identity E il testo è identico al master:
-→ **⚠️ WARNING** | Nota: "[Lingua]: identico a [MASTER] — sospetta copia"
+## Rule 3 — Text identical to master?
+If the field is NOT identity AND the text is identical to the master:
+→ **⚠️ WARNING** | Note: "[Language]: identical to [MASTER] — suspected copy"
 
-## Regola 4 — Soglia lunghezza? (solo se check formale attivo)
-Conta i caratteri del testo (esclusi tag HTML).
+## Rule 4 — Length threshold? (only if the formal check is active)
+Count the characters in the text (excluding HTML tags).
 
-### Descrizione Hotel:
-| Caratteri | Stato | Nota |
+### Hotel Description:
+| Characters | Status | Note |
 |-----------|-------|------|
-| < 200     | ❌ CRITICO | "[N]c — sotto minimo (200)" |
-| < 500     | ⚠️ WARNING | "[N]c — sotto consigliato (500)" |
+| < 200     | ❌ CRITICAL | "[N]c — below minimum (200)" |
+| < 500     | ⚠️ WARNING | "[N]c — below recommended (500)" |
 | >= 500    | ✅ OK | "[N]c" |
 
-### Descrizione Camera:
-| Caratteri | Stato | Nota |
+### Room Description:
+| Characters | Status | Note |
 |-----------|-------|------|
-| < 80      | ❌ CRITICO | "[N]c — sotto minimo (80)" |
-| < 200     | ⚠️ WARNING | "[N]c — sotto consigliato (200)" |
+| < 80      | ❌ CRITICAL | "[N]c — below minimum (80)" |
+| < 200     | ⚠️ WARNING | "[N]c — below recommended (200)" |
 | >= 200    | ✅ OK | "[N]c" |
 
-### Descrizione Offerta/Pacchetto:
-| Caratteri | Stato | Nota |
+### Offer/Package Description:
+| Characters | Status | Note |
 |-----------|-------|------|
-| < 100     | ⚠️ WARNING | "[N]c — sotto consigliato (100)" |
+| < 100     | ⚠️ WARNING | "[N]c — below recommended (100)" |
 | >= 100    | ✅ OK | "[N]c" |
 
-## Regola 5 — HTML rotto? (solo se check formale attivo)
-Cerca tag aperti senza chiusura: `<p>` senza `</p>`, `<b>` senza `</b>`,
-`<div>` senza `</div>`, `<ul>`/`<li>` non chiusi.
-Se trovati:
-→ **❌ CRITICO** | Nota: "HTML rotto: [tag] non chiuso"
+## Rule 5 — Broken HTML? (only if the formal check is active)
+Look for opening tags without a closing tag: `<p>` without `</p>`, `<b>` without `</b>`,
+`<div>` without `</div>`, unclosed `<ul>`/`<li>`.
+If found:
+→ **❌ CRITICAL** | Note: "Broken HTML: unclosed [tag]"
 
-## Regola 6 — Nessun problema
-Se nessuna regola precedente si applica:
-→ **✅ OK** | Nota: "[N]c"
+## Rule 6 — No issue
+If none of the previous rules apply:
+→ **✅ OK** | Note: "[N]c"
 
-## Quality Check Qualitativo (SOLO Sonnet/Opus)
+## Qualitative Quality Check (Sonnet/Opus ONLY)
 
-Se AUDIT_TYPE include "quality", queste regole AGGIUNTIVE si applicano
-DOPO le regole meccaniche 1→6:
+If AUDIT_TYPE includes "quality", these ADDITIONAL rules apply AFTER the mechanical
+rules 1→6:
 
-- **Nessuna USP identificabile** nella descrizione → ⚠️ WARNING
-- **Tono non hospitality** (troppo tecnico/freddo) → ⚠️ WARNING
-- **Nessuna CTA o benefit** chiaro in offerte/pacchetti → ⚠️ WARNING
-- **Mancanza parole sensoriali/emozionali** → 💡 SUGGERIMENTO
-- Issue su lingua master → priorità assoluta (impatto a cascata)
+- **No identifiable USP** in the description → ⚠️ WARNING
+- **Non-hospitality tone** (too technical/cold) → ⚠️ WARNING
+- **No clear CTA or benefit** in offers/packages → ⚠️ WARNING
+- **Lack of sensory/emotional words** → 💡 SUGGESTION
+- Issues on the master language → absolute priority (cascading impact)
 
-Per Haiku: IGNORARE queste regole qualitative. Solo Regole 1→6.
+For Haiku: IGNORE these qualitative rules. Rules 1→6 only.
 
-## Emoji di stato
+## Status emoji
 
-| Emoji | Significato |
+| Emoji | Meaning |
 |-------|------------|
-| ✅ | OK — nessun problema |
-| ⚠️ | Warning — problema minore |
-| ❌ | Critico — traduzione mancante o errore grave |
-| ⚪ | Identico atteso — campo identity, normale |
-| ➖ | N/A — sezione non applicabile |
-| 💡 | Suggerimento — miglioramento opzionale |
+| ✅ | OK — no issue |
+| ⚠️ | Warning — minor issue |
+| ❌ | Critical — missing translation or serious error |
+| ⚪ | Expected identical — identity field, normal |
+| ➖ | N/A — section not applicable |
+| 💡 | Suggestion — optional improvement |
 
-## Stato aggregato per sezione (Executive Summary)
+## Aggregated status per section (Executive Summary)
 
-Per assegnare lo stato di una SEZIONE per una lingua:
-- ❌ se almeno 1 campo critico
-- ⚠️ se almeno 1 warning E 0 critici
-- ✅ se tutto ok
-- ➖ se sezione non auditata
+To assign the status of a SECTION for a language:
+- ❌ if at least 1 critical field
+- ⚠️ if at least 1 warning AND 0 critical
+- ✅ if everything is ok
+- ➖ if the section wasn't audited
