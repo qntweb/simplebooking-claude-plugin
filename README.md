@@ -28,21 +28,3 @@ When a new version is released, open **Customize → Plugins → Yours** and pre
   across the SimpleBooking platform.
 - **sb-demand-capture** — cross-checks area demand against actual reservations
   to tell whether a property is capturing the demand of its own destination.
-
-## For maintainers — cutting a new release
-
-Commit messages in this repo follow [.claude/commit-rules.md](.claude/commit-rules.md).
-
-The skills are developed in the internal QNT `skills` monorepo, not here. To
-publish an update:
-
-1. In the `skills` repo, run:
-   ```
-   python scripts/build-client-plugin.py \
-     --skills sb-reservation-insights sb-revenue-lens sb-hotel-content-audit sb-demand-capture \
-     --plugin-dir /path/to/simplebooking-claude-plugin/simplebooking-tools
-   ```
-   Add `--worktree` if the latest changes aren't committed yet there.
-2. Bump `version` in `simplebooking-tools/.claude-plugin/plugin.json` (semver).
-3. Commit and push to this repo.
-4. Tell pilot customers to press **Sync** in Claude Desktop.

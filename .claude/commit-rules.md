@@ -25,7 +25,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 | Scope | Area |
 |-------|------|
 | `plugin` | `plugin.json`, `marketplace.json`, `.mcp.json` |
-| `skills` | Content under `simplebooking-tools/skills/` (normally released via `build-client-plugin.py` from the source repo, not hand-edited here) |
+| `skills` | Content under `simplebooking-tools/skills/` (generated for each release, not hand-edited here) |
 | `docs` | `README.md` |
 
 ---
@@ -39,10 +39,10 @@ unrelated `plugin.json`/`README.md` edit into a release commit.
 
 ## Never commit
 
-- Anything other than what `scripts/build-client-plugin.py` exported and the plugin/marketplace
+- Anything other than the generated skill content and the plugin/marketplace
   metadata — this repo has no source code of its own to diverge from that.
-- Real hotel data (names, Property IDs). The source repo's skills are anonymized before
-  export; if one ever isn't, fix it at the source, not here.
+- Real hotel data (names, Property IDs). Skills are anonymized before being
+  published here; if one ever isn't, fix it before the next release, not here.
 
 ## Don't sign as AI
 
@@ -55,6 +55,4 @@ messages. Don't use "claude" in branch names.
 
 ```text
 feat(skills): release v0.2.0 — add sb-inventory-guard, fix demand-capture threshold
-
-Exported from the internal skills repo via build-client-plugin.py.
 ```
