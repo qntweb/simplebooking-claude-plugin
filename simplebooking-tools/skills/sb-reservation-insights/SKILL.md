@@ -89,6 +89,7 @@ Each one, if broken, produces numbers that are **plausible and wrong**. These ar
 | What each field contains, how well it is populated, what to ignore | `references/fields.md` |
 | Ready-made templates for recurring questions | `references/use-cases.md` |
 | Input shape for the arithmetic check | `references/verify-contract.md` |
+| The user asks what they can ask this skill | `references/question-catalog.md` |
 
 Paths in this table are relative to this skill's own directory, **not** to the working
 directory of the session — the two are almost never the same. Resolve them against the
