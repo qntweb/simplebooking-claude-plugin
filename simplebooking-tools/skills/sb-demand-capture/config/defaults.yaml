@@ -79,7 +79,7 @@ min_gap_base_n: 20
 # Year-over-year stability of the actual/demand ratio (X6 only)
 # ---------------------------------------------------------------------------
 # X6 compares the YoY delta of two averages (demand's daysAhead, actual
-# DaysInAdvanced) instead of the absolute value, because the two populations
+# DaysInAdvance) instead of the absolute value, because the two populations
 # aren't comparable in absolute terms (searches vs confirmed reservations —
 # see references/cross-lenses.md). The method assumes the RATIO between the
 # two averages stays stable over time. Above this drift threshold,

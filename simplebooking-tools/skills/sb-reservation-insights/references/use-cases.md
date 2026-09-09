@@ -48,7 +48,7 @@ Business that came in during a **booking** window. By far the most repeated ques
   "metrics": [ { "name": "bookings_total", "reservationsCount": true },
                { "name": "room_nights_total", "measure": "RoomNights", "statistic": "Sum" },
                { "name": "room_revenue_total", "measure": "TotalStay", "statistic": "Sum" },
-               { "name": "avg_lead_time", "measure": "DaysInAdvanced", "statistic": "Average" } ] } }
+               { "name": "avg_lead_time", "measure": "DaysInAdvance", "statistic": "Average" } ] } }
 ```
 
 Pick-up concentrated in a single day is usually a group or a campaign, not a trend. **If `{{TO}}` is today the last bucket is partial** — say so, or stop at yesterday.
@@ -99,7 +99,7 @@ Calls B and C — STLY reconstruction: see the pattern in `mechanics.md`. A thir
                    { "name": "services", "measure": "TotalReservationServicesRevenue", "statistic": "Sum" },
                    { "name": "commission", "measure": "CommissionAmount", "statistic": "Sum" },
                    { "name": "los", "measure": "Nights", "statistic": "Average" },
-                   { "name": "lead_time", "measure": "DaysInAdvanced", "statistic": "Average" } ],
+                   { "name": "lead_time", "measure": "DaysInAdvance", "statistic": "Average" } ],
       "dimensions": [
         { "name": "source", "terms": { "facet": "Source" }, "size": 30, "sort": "ByCountDescending",
           "metrics": [ { "name": "bookings", "reservationsCount": true },
@@ -181,18 +181,18 @@ is still active on that channel.
     { "name": "month", "calendar": { "facet": "CheckIn", "interval": "Month" },
       "sort": "ByKeyAscending", "size": 14,
       "metrics": [ { "name": "bookings", "reservationsCount": true },
-                   { "name": "lead_time_avg", "measure": "DaysInAdvanced", "statistic": "Average" },
-                   { "name": "lead_time_min", "measure": "DaysInAdvanced", "statistic": "Min" },
-                   { "name": "lead_time_max", "measure": "DaysInAdvanced", "statistic": "Max" } ],
+                   { "name": "lead_time_avg", "measure": "DaysInAdvance", "statistic": "Average" },
+                   { "name": "lead_time_min", "measure": "DaysInAdvance", "statistic": "Min" },
+                   { "name": "lead_time_max", "measure": "DaysInAdvance", "statistic": "Max" } ],
       "dimensions": [
         { "name": "channel", "terms": { "facet": "ChannelType" },
           "metrics": [ { "name": "bookings", "reservationsCount": true },
-                       { "name": "lead_time_avg", "measure": "DaysInAdvanced", "statistic": "Average" },
+                       { "name": "lead_time_avg", "measure": "DaysInAdvance", "statistic": "Average" },
                        { "name": "room_nights", "measure": "RoomNights", "statistic": "Sum" },
                        { "name": "room_revenue", "measure": "TotalStay", "statistic": "Sum" } ] } ] } ] } }
 ```
 
-**Last-minute share:** the same call plus `{ "facet": "DaysInAdvanced", "numericFilter": { "lessOrEqualThan": 3 } }`, then compare the counts.
+**Last-minute share:** the same call plus `{ "facet": "DaysInAdvance", "numericFilter": { "lessOrEqualThan": 3 } }`, then compare the counts.
 
 A `Max` around a year reflects when the booking window opens, not guest behaviour: read the average together with min and max.
 
@@ -339,12 +339,12 @@ The rest of the request stays identical, with `ChannelType` as a sub-dimension a
     { "facet": "ReservationStatusSimplified", "keywordFilter": { "equalTo": "Active" } },
     { "facet": "ChannelType", "keywordFilter": { "equalTo": "Direct" } } ],
   "dimensions": [
-    { "name": "market", "terms": { "facet": "CustomerCountryName" }, "size": 100, "sort": "ByCountDescending",
+    { "name": "market", "terms": { "facet": "CustomerCountryCode" }, "size": 100, "sort": "ByCountDescending",
       "metrics": [ { "name": "bookings", "reservationsCount": true },
                    { "name": "room_nights", "measure": "RoomNights", "statistic": "Sum" },
                    { "name": "room_revenue", "measure": "TotalStay", "statistic": "Sum" },
                    { "name": "los", "measure": "Nights", "statistic": "Average" },
-                   { "name": "lead_time", "measure": "DaysInAdvanced", "statistic": "Average" } ] } ] } }
+                   { "name": "lead_time", "measure": "DaysInAdvance", "statistic": "Average" } ] } ] } }
 ```
 
 The `Direct` filter is deliberate: on intermediated bookings the country arrives from only a few portals. `size` is high because a low value truncates the tail and makes coverage look worse than it is. Unify variants of the same country before presenting a ranking.
@@ -383,7 +383,9 @@ The column that matters is not volume but **ADR × LOS**: a small market with do
 
 Start from **medium**, which is cleaner than source. The empty-key bucket gives the untracked count: **state coverage before the ranking**, always.
 
-Pair this with a `Source` dimension: it catches origins UTMs never see, metasearch in particular, and it does not depend on link tagging. Exclude `PrenMan` from any attribution analysis.
+Pair this with a `Source` dimension: it catches origins UTMs never see, metasearch in particular, and it does not depend on link tagging. Exclude `PrenMan` from any attribution analysis — but see the caveat in `fields.md` before doing so, if the "CRM quote tool" band matters: a Converto quote closed by hand still carries `PrenMan`.
+
+**A CRM quote tool no longer has to be identified by guessing its `Source` tag.** `ConvertoQuoteId hasValue: true` isolates every reservation converted from a Converto quote directly — see "Converto quote provenance" in `fields.md`. It does not correlate with any `Source` value (roughly a third of it is `PrenMan`, a chunk more is `MOBILE`, and the field is often empty), so this is not something a Source-vocabulary census would ever surface.
 
 **`rezmate.ai` is worth knowing by name.** It is the AI concierge embedded natively in Simple
 Booking on the hotel's own website — it answers questions from an extended knowledge base and
@@ -521,7 +523,7 @@ aggregate collected.
                    { "name": "room_nights", "measure": "RoomNights", "statistic": "Sum" },
                    { "name": "room_revenue", "measure": "TotalStay", "statistic": "Sum" },
                    { "name": "commission", "measure": "CommissionAmount", "statistic": "Sum" },
-                   { "name": "lead_time", "measure": "DaysInAdvanced", "statistic": "Average" } ],
+                   { "name": "lead_time", "measure": "DaysInAdvance", "statistic": "Average" } ],
       "dimensions": [
         { "name": "channel", "terms": { "facet": "ChannelType" },
           "metrics": [ { "name": "bookings", "reservationsCount": true },

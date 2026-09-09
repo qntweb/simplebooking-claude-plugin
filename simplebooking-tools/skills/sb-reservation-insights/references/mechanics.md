@@ -23,6 +23,8 @@ Each clause names one `facet` and populates **exactly one** of `keywordFilter`, 
 - **Numeric** — `equalTo`, `in`, `between`, comparisons, `hasValue`. **There are no numeric
   negations**: `notEqualTo` and `notIn` exist on keyword fields only. To exclude a numeric
   value, use two comparisons or an explicit `in`.
+  `ConvertoQuoteId` is one of these — `hasValue: true` isolates reservations converted from a
+  Converto quote. See "Converto quote provenance" in `fields.md`.
 - **Keyword** — `equalTo`, `in`, `notEqualTo`, `notIn`, `hasValue`. On enum fields, values must
   be **exact member names**. One affirmative (`equalTo` or `in`) and one negation
   (`notEqualTo` or `notIn`) **may be combined** in the same clause: that is how you take a set
@@ -58,14 +60,19 @@ Two date clauses over the same set combine with AND, which enables some non-obvi
 
 This isolates reservations **in house** that night. The boundary is delicate: `greaterThan` (strict) correctly excludes guests departing that morning, while `greaterOrEqualThan` double-counts rooms in turnover.
 
-### Filtering on nested elements — mind the name
+### Filtering on nested elements — mind the name, and the value
 
 `RatePlan`, `Offer` and `RoomQuantity` **are** filterable, and so is room type — but as a
-filter the facet is called **`Room`**, not `RoomType`. Using `RoomType` in a filter clause is
-rejected; it is a dimension facet only.
+filter the facet is **`RoomId`**, not `RoomType` and, as of a schema change confirmed live
+2026-09-08, no longer `Room` either — the facet was renamed and now takes the numeric room
+type **ID**, not its name. `RoomId equalTo "Deluxe Double"` is rejected outright; a value that
+looks like a name but isn't a valid ID fails at the search layer instead (`Document search
+error: all shards failed`), which is a worse failure mode because it looks like a transient
+fault rather than a wrong request. Resolve the ID first from a `RoomType` dimension bucket —
+its key is `Name (ID)` — then filter on the ID as a string:
 
 ```json
-{ "facet": "Room", "keywordFilter": { "equalTo": "Deluxe Double" } }
+{ "facet": "RoomId", "keywordFilter": { "equalTo": "28615" } }
 ```
 
 This is what lets you escape the non-additivity of those facets: instead of reading a bucket
@@ -78,7 +85,7 @@ reaching for in the product-performance and like-for-like cases in `use-cases.md
 `CommissionAmount`, `TotalReceived`, `TransactorPaidAmount`, `ServiceRevenue` and `Adr` are
 measures only — none appears among the filter facets. You cannot ask for "reservations above
 1000 euro", nor filter to "reservations with at least one service". Filter on the countable
-fields instead (`Nights`, `RoomNights`, `NumberOfPersons`, `RoomQuantity`, `DaysInAdvanced`, the
+fields instead (`Nights`, `RoomNights`, `NumberOfPersons`, `RoomQuantity`, `DaysInAdvance`, the
 cancellation-distance pair) and read money as a metric.
 
 ## Dimensions
@@ -86,7 +93,12 @@ cancellation-distance pair) and read money as a metric.
 Two kinds, nestable to any depth.
 
 **`terms`** — group by a field's value:
-`Property`, `Offer`, `RatePlan`, `RoomType`, `Package`, `Service`, `Portal`, `DistributionChannel`, `Channel`, `ChannelType`, `RateType`, `Currency`, `PaymentTransactor`, `ReservationStatusSimplified`, `ReservationStatus`, `ReservationSubStatus`, `ReservationType`, `Source`, `PaymentMethod`, `PropertyCountryCode`, `ReservationCode`, `TrackingUtmSource`, `TrackingUtmMedium`, `TrackingUtmCampaign`, `TrackingRefId`, `Tracking*ClickId`, `CustomerCountryCode`, `CustomerCountryName`.
+`Property`, `Offer`, `RatePlan`, `RoomType`, `Package`, `Service`, `Portal`, `DistributionChannel`, `Channel`, `ChannelType`, `RateType`, `Currency`, `PaymentTransactor`, `ReservationStatusSimplified`, `ReservationStatus`, `ReservationSubStatus`, `ReservationType`, `Source`, `PaymentMethod`, `PropertyCountryCode`, `ReservationCode`, `TrackingUtmSource`, `TrackingUtmMedium`, `TrackingUtmCampaign`, `TrackingRefId`, `Tracking*ClickId`, `CustomerCountryCode`, `FromConvertoQuote`.
+
+`CustomerCountryName` **no longer exists** (confirmed live, 2026-09-08 — see `fields.md`): only
+the code is groupable now, no resolved country name. `FromConvertoQuote` is new (boolean, see
+"Converto quote provenance" in `fields.md`) and, unlike most of this list, **rejected as a
+filter facet** — filter on the numeric `ConvertoQuoteId` instead (`hasValue: true`).
 
 `DistributionChannel` is not documented in the tool's own facet enum (confirmed live, 2026-08-27) — the schema description lags the connector, same pattern already seen with `TotalReservationServicesRevenue`. Do not trust the enum list as exhaustive; if a field is reported as newly added, try it.
 
@@ -124,7 +136,7 @@ lookup. **Keep using `Source`** for anything touching direct, or for cross-refer
 
 Three mutually exclusive forms: `reservationsCount: true`, or `measure` + `statistic`, or `distinctCountOf`.
 
-The available **measures** are twenty: `Nights`, `RoomNights`, `RoomQuantity`, `NumberOfAdults`, `NumberOfKids`, `NumberOfPersons`, `NumberOfRooms`, `DaysInAdvanced`, `CancellationDaysAfterRegistration`, `CancellationDaysBeforeCheckIn`, `TotalReservationRevenue`, `TotalReservationServicesRevenue`, `TotalStay`, `TotalTaxes`, `CommissionAmount`, `Adr`, `TotalReceived`, `TransactorPaidAmount`, `ServiceRevenue`, `ServiceQuantitySold`.
+The available **measures** are twenty: `Nights`, `RoomNights`, `RoomQuantity`, `NumberOfAdults`, `NumberOfKids`, `NumberOfPersons`, `NumberOfRooms`, `DaysInAdvance`, `CancellationDaysAfterRegistration`, `CancellationDaysBeforeCheckIn`, `TotalReservationRevenue`, `TotalReservationServicesRevenue`, `TotalStay`, `TotalTaxes`, `CommissionAmount`, `Adr`, `TotalReceived`, `TransactorPaidAmount`, `ServiceRevenue`, `ServiceQuantitySold`.
 
 **`TotalReservationServicesRevenue` replaced `TotalServices`** in the connector's accepted enum (confirmed in production, 2026-08-26: the old name now fails with `Unknown values: TotalServices`). Same meaning, same value — only the name changed.
 
@@ -281,7 +293,9 @@ There is no numeric histogram: build bands with one call each, changing only the
 | Symptom | Cause |
 |---|---|
 | `metric 'X' is nested-scoped...` | `Adr` or a nested distinct-count outside the right scope |
-| A filter on `RoomType` is rejected | as a filter the facet is `Room`; `RoomType` is a dimension facet only |
+| A filter on `RoomType` is rejected | as a filter the facet is `RoomId`; `RoomType` is a dimension facet only |
+| `Document search error: all shards failed` on a `RoomId` filter | value is a room name, not the numeric ID — resolve the ID from a `RoomType` bucket first |
+| A filter on `FromConvertoQuote` is rejected | it is a dimension facet only; filter on the numeric `ConvertoQuoteId` instead |
 | A filter on an amount is rejected | monetary fields are measures, never filter facets |
 | Time zone rejected | numeric offset instead of an IANA id |
 | Truncated buckets | `size` not set |

@@ -113,7 +113,7 @@ sources.
   arithmetic bug.** The demand's average `daysAhead` is the average over
   *all search events*: the vast majority is light traffic (browsing,
   comparing, price-checking) that's structurally close to the date. The
-  actual `DaysInAdvanced` is the average only of those who **actually
+  actual `DaysInAdvance` is the average only of those who **actually
   booked** — a much smaller, more "planner" subset. The two averages measure
   populations that are different by nature: comparing them in absolute terms
   says nothing about THIS property's pacing, it only says how wide the
@@ -123,7 +123,7 @@ sources.
   time, the YoY delta of each metric against itself cancels it out.
 - **Input:** YoY delta % of the demand's average `daysAhead` (`sb-revenue-lens`'s
   L5, same window shifted by a year) and YoY delta % of the actual average
-  `DaysInAdvanced` (`sb-reservation-insights`, underlying `RegistrationDate`,
+  `DaysInAdvance` (`sb-reservation-insights`, underlying `RegistrationDate`,
   same window), **only on already-concluded periods** — never on a future
   window, for the same reason `sb-reservation-insights` says "only redo this
   on already-concluded months" for booking lead time (censoring: short-term

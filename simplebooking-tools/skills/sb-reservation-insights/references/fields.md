@@ -25,14 +25,16 @@ The second case is treacherous: that channel appears **artificially high** in an
 
 ### Guest country comes from only some portals
 
-`CustomerCountryName` / `CustomerCountryCode`:
+`CustomerCountryCode`:
 
 - On **direct** bookings it is populated almost always (around 99%).
 - On **intermediated** bookings it arrives only from **Booking and HotelBeds**. Expedia, Agoda and Ctrip **never transmit it**.
 
 Consequence: on a heavily intermediated property overall coverage can fall below 30%, and a source-market ranking computed across all channels is really a ranking of direct bookings with some noise on top. **Filter `ChannelType = Direct`** and say so.
 
-They also exist only as a **dimension**, not as a filter: you cannot isolate a single market, you read it from the bucket. And the country-code vocabulary is **not normalised** — variants of the same country can coexist as separate buckets in the same data.
+It exists only as a **dimension**, not as a filter: you cannot isolate a single market, you read it from the bucket. And the vocabulary is **not normalised** — variants of the same country (`GB` / `UK`) can coexist as separate buckets in the same data.
+
+**`CustomerCountryName` no longer exists as a facet** (confirmed live, 2026-09-08: the tool rejects it in a `terms` dimension with a validation error listing the current enum). Earlier revisions of this file documented a `CustomerCountryName` / `CustomerCountryCode` pair; only the code remains. There is no resolved, human-readable country name available from this tool any more — normalise the ISO code yourself if a report needs a readable market name.
 
 ### `TotalReservationServicesRevenue` is exactly zero on intermediated bookings
 
@@ -121,11 +123,16 @@ Three families of values coexist in the same field:
 
 ### `PrenMan` as an indicator
 
-It identifies **manual Back Office entry only**: reservations pushed via API or saved by a CRM / Quote Manager **never carry it**. The indicator is therefore clean.
+It identifies **manual Back Office entry**, always — that part of the indicator is unchanged and clean. **Correction (2026-09-08, supersedes the earlier claim on this line): a CRM / Quote Manager push is not automatically excluded from it.** For Converto (SimpleBooking's own built-in CRM & Quote Manager — see "Converto quote provenance" below), the business model explains exactly why:
 
-Manual entry should stay **residual**. When it weighs heavily, it usually means one of two things: the property has meaningful phone or repeat-guest volume **without a dedicated tool** and is handling it by hand, or staff are bypassing the booking engine. The first is a commercial opportunity, the second a process problem — and the numbers alone do not separate them.
+- **The guest converts the quote autonomously.** Staff draft a quote in Converto from the guest's request; the guest independently opens it, lands on their own dedicated mini-site, chooses among the proposals, optionally adds services, and books **without any human step at the close**. This reservation carries `FromConvertoQuote = true` / `ConvertoQuoteId`, and `Source` is **not** `PrenMan` (it reflects the booking interface instead — typically `MOBILE`, or no value at all on desktop).
+- **The guest instead confirms by phone (or otherwise, off the mini-site).** Staff, starting from the same quote, key the confirmed reservation into Back Office by hand. This reservation **also** carries `FromConvertoQuote = true` / `ConvertoQuoteId` — **and** `Source = PrenMan`, because a human did in fact type it in. The two facts are not in tension: `PrenMan` records *how* it entered the system, `ConvertoQuoteId` records *where the demand came from*.
 
-In an **attribution** analysis, exclude `PrenMan`: those reservations never had a web session, and keeping them inflates the "unattributed" share with business that is by definition not attributable to a digital source.
+Confirmed live, platform-wide (2026-09-08): of every `ConvertoQuoteId hasValue: true` reservation, `Channel = Website` accounts for 639,226 and `Channel = Mobile` for 409,122 (both interface values, additive, always populated); of the `Website` share, exactly 336,609 carry `Source = PrenMan` — the operator-confirmed path — and the remainder converted with no staff involvement at the close. `Channel` reconciles exactly to the `ConvertoQuoteId` total; `Source` does not, because it is optional on direct bookings generally (see above) — the gap is not a third, unexplained path, it is the ordinary Source-coverage gap.
+
+Manual entry should stay **residual** once the Converto share is accounted for. When what remains weighs heavily, it usually means: the property has meaningful phone or repeat-guest volume **without a dedicated tool** and is handling it by hand, or staff are bypassing the booking engine. `ConvertoQuoteId hasValue: true AND Source = PrenMan` isolates the operator-confirmed quote share precisely; everything else in `PrenMan` is the older, less legible kind.
+
+In an **attribution** analysis, `PrenMan` reservations are conventionally excluded because they never had a web session. That convention now needs a carve-out: the operator-confirmed Converto share **did** originate from an identifiable source — a staff-drafted quote — and dropping it along with genuine phone/walk-in noise understates real CRM/quote-tool business. `sb-direct-attribution` implements this carve-out (see its `SKILL.md` — band "Vendita assistita da persone" — and `scripts/engine.py`); a manual query should do the same by filtering `ConvertoQuoteId` before excluding the rest of `PrenMan`.
 
 ### Two `Source` values worth knowing by name
 
@@ -147,6 +154,61 @@ Most values are self-explanatory from their code. Two are not, and both were con
   misses the other eras, and `DistributionChannel` does not merge them into one brand either
   (`IVector (XML)`, `Imperatour (XML)`, `Imperatore Juniper (XML)` are three separate buckets).
   Ask whether a newer code has appeared if the property is still active on that channel.
+
+### Converto quote provenance — `ConvertoQuoteId` / `FromConvertoQuote`
+
+New (confirmed live, 2026-09-08): the tool can now identify reservations that originated as a
+quote converted through Converto, SimpleBooking's own CRM & Quote Manager. Exposed **two ways**,
+not one:
+
+| Form | Kind | How to use it |
+|---|---|---|
+| `FromConvertoQuote` | **dimension only** (`terms`), boolean bucket keys `true`/`false` | group by it; **rejected as a filter facet** |
+| `ConvertoQuoteId` | **numeric filter only** (`hasValue`, `equalTo`, `in`, `between`) | `hasValue: true` isolates the converted-quote reservations; **not a dimension, not a metric, not a `distinctCountOf` target** |
+
+Root-scope and additive — `docCount` equals `reservationsCount` on the `FromConvertoQuote`
+dimension, unlike the nested `RoomType`/`RatePlan`/`Offer`/`Service` family.
+
+**Platform-wide adoption is real, not a rounding artefact**: a scan with no `propertyIds`
+(2026-09-08) returned 1,050,914 reservations with `FromConvertoQuote = true` out of 11,996,303
+total — about 8.8%. Nearly all of it is direct: filtering `ConvertoQuoteId hasValue: true` by
+`ChannelType` gave 1,050,868 `Direct` against 54 `Indirect`.
+
+**The two exposures do not reconcile exactly.** `FromConvertoQuote = true` bucketed 1,050,914;
+`ConvertoQuoteId hasValue: true` matched 1,050,916 — a gap of 2 out of over a million, with no
+known cause. Same discipline as the `TotalReceived` / `TransactorPaidAmount` gap elsewhere in
+this file: report the figure, flag the gap, do not explain it away.
+
+**It does not correlate with any distinct `Source` tag — by design, not by gap in the data.**
+Grouping `ConvertoQuoteId hasValue: true` reservations by `Source` (platform-wide, 2026-09-08)
+returned `MOBILE` (409,092), `PrenMan` (336,566), `REENGAGEMENT` (1), and roughly 305,000 with no
+`Source` value at all. There is no "Converto" or "Quote Manager" string anywhere in `Source` —
+the field records the technical interface or the manual-entry marker, which is a different
+question from whether a Converto quote sat behind the booking. **A Source-based lookup can never
+identify these reservations**; `ConvertoQuoteId` is the only way.
+
+**The business model behind the split** (confirmed with the product team, 2026-09-08): a Converto
+quote converts in one of two ways, and both carry `ConvertoQuoteId` regardless of which.
+
+1. **The guest converts autonomously.** Staff draft the quote in Converto; the guest opens it
+   independently, lands on their own dedicated mini-site, chooses among the proposals — optionally
+   adding services — and books with no human step at the close. `Source` reflects the technical
+   interface here (`MOBILE` on a phone, no value on desktop), never `PrenMan`.
+2. **The guest confirms off the mini-site — by phone, typically —** and staff, starting from the
+   same quote, key the confirmed reservation into Back Office by hand. This carries `ConvertoQuoteId`
+   **and** `Source = PrenMan`: a human did type it in, that part of `PrenMan`'s meaning holds:
+   see the correction above.
+
+`Channel` (not `Source`) reconciles exactly to the two paths: `Website` (639,226) and `Mobile`
+(409,122) together account for the full `ConvertoQuoteId` population, and of the `Website` share,
+exactly 336,609 carry `Source = PrenMan` — the operator-confirmed path. `Source`'s own coverage
+gap (the ~305,000 with no value) is the ordinary direct-booking Source gap documented above, not
+a third unexplained path.
+
+See `sb-direct-attribution`'s `config/known-sources.yaml`, where the "Converto CRM & Quote
+Manager" comment now documents that no `Source` tag will ever exist for this product — and its
+`scripts/engine.py`, which implements the operator-confirmed / autonomous split as its own
+classification path, independent of `Source`/utm string matching.
 
 ---
 
