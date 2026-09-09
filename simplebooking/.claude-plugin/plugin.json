@@ -1,7 +1,7 @@
 {
   "name": "simplebooking",
   "displayName": "Simple Booking",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "SimpleBooking data analysis skills (reservations, revenue, content, demand) for hotel customers, built on the IBE and BackOffice MCP connectors.",
   "author": {
     "name": "Simple Booking - QNT / Zucchetti Group"

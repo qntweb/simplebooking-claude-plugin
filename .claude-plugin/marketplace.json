@@ -6,7 +6,10 @@
   "plugins": [
     {
       "name": "simplebooking",
-      "source": "./simplebooking-tools"
+      "source": "./simplebooking",
+      "author": {
+        "name": "Simple Booking - QNT / Zucchetti Group"
+      }
     }
   ],
   "renames": {

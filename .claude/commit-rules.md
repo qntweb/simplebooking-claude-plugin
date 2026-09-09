@@ -25,7 +25,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 | Scope | Area |
 |-------|------|
 | `plugin` | `plugin.json`, `marketplace.json`, `.mcp.json` |
-| `skills` | Content under `simplebooking-tools/skills/` (generated for each release, not hand-edited here) |
+| `skills` | Content under `simplebooking/skills/` (generated for each release, not hand-edited here) |
 | `docs` | `README.md` |
 
 ---
