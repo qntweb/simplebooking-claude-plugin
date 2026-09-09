@@ -5,8 +5,11 @@
   },
   "plugins": [
     {
-      "name": "simplebooking-tools",
+      "name": "simplebooking",
       "source": "./simplebooking-tools"
     }
-  ]
+  ],
+  "renames": {
+    "simplebooking-tools": "simplebooking"
+  }
 }

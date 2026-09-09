@@ -8,7 +8,7 @@ BackOffice MCP connectors.
 
 1. Open **Customize → Plugins → Add → Add marketplace**, and enter
    `qntweb/simplebooking-claude-plugin`.
-2. Install the **simplebooking-tools** plugin. This adds the two SimpleBooking
+2. Install the **Simple Booking** plugin. This adds the two SimpleBooking
    MCP connectors and four skills — sign in with your SimpleBooking account when
    prompted for the connectors.
 
