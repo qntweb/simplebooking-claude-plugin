@@ -6,7 +6,7 @@
 {
   "request": {
     "propertyIds": [9999],
-    "filters":    [ { "facet": "...", "dateFilter|numericFilter|keywordFilter": { } } ],
+    "filters":    { "keyword": [ { "facet": "..." } ], "numeric": [ { "facet": "..." } ], "date": [ { "facet": "..." } ] },
     "dimensions": [ { "terms|calendar": { }, "name": "", "size": 0, "sort": "", "dimensions": [], "metrics": [] } ],
     "metrics":    [ { "reservationsCount|measure+statistic|distinctCountOf": "" } ]
   }
@@ -17,7 +17,10 @@ Omitting `propertyIds` means **every property the caller can access**: convenien
 
 ## Filters
 
-Each clause names one `facet` and populates **exactly one** of `keywordFilter`, `numericFilter`, `dateFilter`.
+`filters` is **one object**, not a list: three optional lists, one per family — `keyword`,
+`numeric`, `date`. Each entry names one `facet` and puts its operators (`equalTo`, `between`,
+`greaterThan`, …) **directly on the entry** — there is no `dateFilter`/`numericFilter`/`keywordFilter`
+wrapper key. A facet may appear at most once across all three lists.
 
 - **Dates** — `equalTo` (whole day), `between` (inclusive on both ends), `greaterThan` / `greaterOrEqualThan` / `lessThan` / `lessOrEqualThan`, `hasValue`. `between` cannot be combined with other operators: use comparisons for an open-ended range. **`between` rejects a span over 24 months** (confirmed live on `RegistrationDate`) — split a longer range into two calls.
 - **Numeric** — `equalTo`, `in`, `between`, comparisons, `hasValue`. **There are no numeric
@@ -52,13 +55,19 @@ the enum name above (`"equalTo": "Transactor"`). The **bucket key**, when you gr
 Two date clauses over the same set combine with AND, which enables some non-obvious queries:
 
 ```json
-"filters": [
-  { "facet": "CheckInDate",  "dateFilter": { "lessOrEqualThan": "2026-08-23" } },
-  { "facet": "CheckOutDate", "dateFilter": { "greaterThan":     "2026-08-23" } }
-]
+"filters": { "date": [
+  { "facet": "CheckInDate",  "lessOrEqualThan": "2026-08-23", "greaterOrEqualThan": "2026-02-23" },
+  { "facet": "CheckOutDate", "greaterThan":     "2026-08-23", "lessOrEqualThan":    "2027-02-23" }
+] }
 ```
 
 This isolates reservations **in house** that night. The boundary is delicate: `greaterThan` (strict) correctly excludes guests departing that morning, while `greaterOrEqualThan` double-counts rooms in turnover.
+
+**Bound both sides** (confirmed live 2026-09-10): leaving `CheckInDate` and `CheckOutDate` fully
+open-ended on both clauses, as a naive reading of "in house" suggests, fails with `the check-in
+or check-out date filter spans more than 24 months`. A generous bracket around the target date
+(here ±6 months) is enough and does not change which reservations match, since a stay longer than
+a year on either side is not a realistic case to worry about missing.
 
 ### Filtering on nested elements — mind the name, and the value
 
@@ -72,7 +81,7 @@ fault rather than a wrong request. Resolve the ID first from a `RoomType` dimens
 its key is `Name (ID)` — then filter on the ID as a string:
 
 ```json
-{ "facet": "RoomId", "keywordFilter": { "equalTo": "28615" } }
+{ "facet": "RoomId", "equalTo": "28615" }
 ```
 
 This is what lets you escape the non-additivity of those facets: instead of reading a bucket
@@ -102,7 +111,7 @@ filter facet** — filter on the numeric `ConvertoQuoteId` instead (`hasValue: t
 
 `DistributionChannel` is not documented in the tool's own facet enum (confirmed live, 2026-08-27) — the schema description lags the connector, same pattern already seen with `TotalReservationServicesRevenue`. Do not trust the enum list as exhaustive; if a field is reported as newly added, try it.
 
-**`calendar`** — group by date: facets `Registration`, `CheckIn`, `CheckOut`, `Cancellation`; intervals `Hour`, `Day`, `Week`, `Month`, `Quarter`, `Year`.
+**`calendar`** — group by date: facets `RegistrationDate`, `CheckInDate`, `CheckOutDate`, `CancellationDate`; intervals `Hour`, `Day`, `Week`, `Month`, `Quarter`, `Year`.
 
 `sort`: `ByCountAscending`, `ByCountDescending`, `ByKeyAscending`, `ByKeyDescending`. Use `ByKeyAscending` for time series.
 
@@ -158,7 +167,7 @@ Metrics declared inside a dimension are computed on that level's buckets. If you
 
 ```json
 { "name": "day",
-  "calendar": { "facet": "Registration", "interval": "Day", "timeZone": "Europe/Rome" },
+  "calendar": { "facet": "RegistrationDate", "interval": "Day", "timeZone": "Europe/Rome" },
   "sort": "ByKeyAscending",
   "metrics": [ { "name": "bookings", "reservationsCount": true },
                { "name": "room_revenue", "measure": "TotalStay", "statistic": "Sum" } ],
@@ -233,7 +242,7 @@ None of the three above is **what was collected**. That is `TotalReceived` /
 
 `timeZone` accepts **IANA ids only** (`Europe/Rome`); a numeric offset (`+02:00`) is rejected.
 
-It affects **`Registration`** and **`Cancellation`** only. `CheckInDate` and `CheckOutDate` are whole-day fields: passing a zone there is not an error, it simply has no effect.
+It affects **`RegistrationDate`** and **`CancellationDate`** only. `CheckInDate` and `CheckOutDate` are whole-day fields: passing a zone there is not an error, it simply has no effect.
 
 **On multi-property queries the time zone is ignored.** If the properties in scope do not share a zone, the tool interprets dates in **UTC** and says so at the top of the output. For day-level analysis, query one property at a time.
 
@@ -268,16 +277,19 @@ STLY OTB = (booked by the snapshot) − (cancelled by the snapshot)
 
 ```json
 // 1) gross booked by the snapshot — no status filter
-"filters": [
-  { "facet": "CheckInDate",      "dateFilter": { "between": { "from": "2025-09-01", "to": "2025-09-30" } } },
-  { "facet": "RegistrationDate", "dateFilter": { "lessOrEqualThan": "2025-08-23" } } ]
+"filters": { "date": [
+  { "facet": "CheckInDate",      "between": { "from": "2025-09-01", "to": "2025-09-30" } },
+  { "facet": "RegistrationDate", "lessOrEqualThan": "2025-08-23" } ] }
 
 // 2) cancelled by the snapshot — to subtract
-"filters": [
-  { "facet": "CheckInDate",      "dateFilter": { "between": { "from": "2025-09-01", "to": "2025-09-30" } } },
-  { "facet": "RegistrationDate", "dateFilter": { "lessOrEqualThan": "2025-08-23" } },
-  { "facet": "ReservationStatusSimplified", "keywordFilter": { "equalTo": "Cancelled" } },
-  { "facet": "CancellationDate", "dateFilter": { "lessOrEqualThan": "2025-08-23" } } ]
+"filters": {
+  "date": [
+    { "facet": "CheckInDate",      "between": { "from": "2025-09-01", "to": "2025-09-30" } },
+    { "facet": "RegistrationDate", "lessOrEqualThan": "2025-08-23" },
+    { "facet": "CancellationDate", "lessOrEqualThan": "2025-08-23" } ],
+  "keyword": [
+    { "facet": "ReservationStatusSimplified", "equalTo": "Cancelled" } ]
+}
 ```
 
 Simply filtering `Active` on last year is the error to avoid: it would drop every cancellation that happened over the following twelve months, badly understating the benchmark.

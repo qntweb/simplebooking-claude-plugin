@@ -150,7 +150,7 @@ Most values are self-explanatory from their code. Two are not, and both were con
   `Source` more than once.** It has moved connection platform to the channel manager several
   times, leaving **three** distinct codes behind: `IVECTOR`, `IMPERATOUR`, `IMPERATOREJUN`
   (confirmed live, platform-wide: 1,956 / 538 / 10 bookings respectively). **A question about
-  "Imperatore" volume must aggregate all three** (`keywordFilter.in`) — reading only one silently
+  "Imperatore" volume must aggregate all three** (the keyword `in` operator) — reading only one silently
   misses the other eras, and `DistributionChannel` does not merge them into one brand either
   (`IVector (XML)`, `Imperatour (XML)`, `Imperatore Juniper (XML)` are three separate buckets).
   Ask whether a newer code has appeared if the property is still active on that channel.

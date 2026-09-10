@@ -31,11 +31,11 @@ Business that came in during a **booking** window. By far the most repeated ques
 ```json
 { "request": {
   "propertyIds": [{{PID}}],
-  "filters": [
-    { "facet": "RegistrationDate", "dateFilter": { "between": { "from": "{{FROM}}", "to": "{{TO}}" }, "timeZone": "{{TZ}}" } },
-    { "facet": "ReservationStatusSimplified", "keywordFilter": { "equalTo": "Active" } } ],
+  "filters": {
+    "date": [ { "facet": "RegistrationDate", "between": { "from": "{{FROM}}", "to": "{{TO}}" }, "timeZone": "{{TZ}}" } ],
+    "keyword": [ { "facet": "ReservationStatusSimplified", "equalTo": "Active" } ] },
   "dimensions": [
-    { "name": "day", "calendar": { "facet": "Registration", "interval": "Day", "timeZone": "{{TZ}}" },
+    { "name": "day", "calendar": { "facet": "RegistrationDate", "interval": "Day", "timeZone": "{{TZ}}" },
       "sort": "ByKeyAscending", "size": 40,
       "metrics": [ { "name": "bookings", "reservationsCount": true },
                    { "name": "room_nights", "measure": "RoomNights", "statistic": "Sum" },
@@ -62,11 +62,11 @@ Call A — current position, night by night:
 ```json
 { "request": {
   "propertyIds": [{{PID}}],
-  "filters": [
-    { "facet": "CheckInDate", "dateFilter": { "between": { "from": "{{FROM}}", "to": "{{TO}}" } } },
-    { "facet": "ReservationStatusSimplified", "keywordFilter": { "equalTo": "Active" } } ],
+  "filters": {
+    "date": [ { "facet": "CheckInDate", "between": { "from": "{{FROM}}", "to": "{{TO}}" } } ],
+    "keyword": [ { "facet": "ReservationStatusSimplified", "equalTo": "Active" } ] },
   "dimensions": [
-    { "name": "arrival_date", "calendar": { "facet": "CheckIn", "interval": "Day" },
+    { "name": "arrival_date", "calendar": { "facet": "CheckInDate", "interval": "Day" },
       "sort": "ByKeyAscending", "size": 40,
       "metrics": [ { "name": "bookings", "reservationsCount": true },
                    { "name": "rooms", "measure": "NumberOfRooms", "statistic": "Sum" },
@@ -88,9 +88,9 @@ Calls B and C — STLY reconstruction: see the pattern in `mechanics.md`. A thir
 ```json
 { "request": {
   "propertyIds": [{{PID}}],
-  "filters": [
-    { "facet": "CheckInDate", "dateFilter": { "between": { "from": "{{FROM}}", "to": "{{TO}}" } } },
-    { "facet": "ReservationStatusSimplified", "keywordFilter": { "equalTo": "Active" } } ],
+  "filters": {
+    "date": [ { "facet": "CheckInDate", "between": { "from": "{{FROM}}", "to": "{{TO}}" } } ],
+    "keyword": [ { "facet": "ReservationStatusSimplified", "equalTo": "Active" } ] },
   "dimensions": [
     { "name": "channel_type", "terms": { "facet": "ChannelType" }, "sort": "ByCountDescending",
       "metrics": [ { "name": "bookings", "reservationsCount": true },
@@ -132,7 +132,7 @@ lookup. Keep `Source` for anything touching direct, and for cross-referencing `C
 three distinct `Source`/`DistributionChannel` codes behind (confirmed live 2026-08-27,
 platform-wide): `IVECTOR` → *IVector (XML)* (1,956 bookings), `IMPERATOUR` → *Imperatour (XML)*
 (538), `IMPERATOREJUN` → *Imperatore Juniper (XML)* (10). A question about "Imperatore" volume
-must aggregate all three (`keywordFilter.in`) on whichever field you use — `DistributionChannel`
+must aggregate all three (the keyword `in` operator) on whichever field you use — `DistributionChannel`
 does not merge them into one brand either. Ask whether a newer code has appeared if the property
 is still active on that channel.
 
@@ -145,11 +145,11 @@ is still active on that channel.
 ```json
 { "request": {
   "propertyIds": [{{PID}}],
-  "filters": [
-    { "facet": "CheckInDate", "dateFilter": { "between": { "from": "{{FROM}}", "to": "{{TO}}" } } },
-    { "facet": "ReservationStatusSimplified", "keywordFilter": { "equalTo": "Active" } } ],
+  "filters": {
+    "date": [ { "facet": "CheckInDate", "between": { "from": "{{FROM}}", "to": "{{TO}}" } } ],
+    "keyword": [ { "facet": "ReservationStatusSimplified", "equalTo": "Active" } ] },
   "dimensions": [
-    { "name": "day", "calendar": { "facet": "CheckIn", "interval": "Day" },
+    { "name": "day", "calendar": { "facet": "CheckInDate", "interval": "Day" },
       "sort": "ByKeyAscending", "size": 20,
       "metrics": [ { "name": "arrivals", "reservationsCount": true },
                    { "name": "rooms", "measure": "NumberOfRooms", "statistic": "Sum" },
@@ -159,7 +159,7 @@ is still active on that channel.
                    { "name": "los", "measure": "Nights", "statistic": "Average" } ] } ] } }
 ```
 
-**Departures:** identical, using `CheckOutDate` and the `CheckOut` calendar facet.
+**Departures:** identical, using `CheckOutDate` both as the filter facet and as the calendar facet.
 
 **In house that night:** combined filters (see `mechanics.md`) — `CheckInDate lessOrEqualThan {{DATE}}` plus `CheckOutDate greaterThan {{DATE}}`.
 
@@ -174,11 +174,11 @@ is still active on that channel.
 ```json
 { "request": {
   "propertyIds": [{{PID}}],
-  "filters": [
-    { "facet": "CheckInDate", "dateFilter": { "between": { "from": "{{FROM}}", "to": "{{TO}}" } } },
-    { "facet": "ReservationStatusSimplified", "keywordFilter": { "equalTo": "Active" } } ],
+  "filters": {
+    "date": [ { "facet": "CheckInDate", "between": { "from": "{{FROM}}", "to": "{{TO}}" } } ],
+    "keyword": [ { "facet": "ReservationStatusSimplified", "equalTo": "Active" } ] },
   "dimensions": [
-    { "name": "month", "calendar": { "facet": "CheckIn", "interval": "Month" },
+    { "name": "month", "calendar": { "facet": "CheckInDate", "interval": "Month" },
       "sort": "ByKeyAscending", "size": 14,
       "metrics": [ { "name": "bookings", "reservationsCount": true },
                    { "name": "lead_time_avg", "measure": "DaysInAdvance", "statistic": "Average" },
@@ -192,7 +192,7 @@ is still active on that channel.
                        { "name": "room_revenue", "measure": "TotalStay", "statistic": "Sum" } ] } ] } ] } }
 ```
 
-**Last-minute share:** the same call plus `{ "facet": "DaysInAdvance", "numericFilter": { "lessOrEqualThan": 3 } }`, then compare the counts.
+**Last-minute share:** the same call plus `{ "facet": "DaysInAdvance", "lessOrEqualThan": 3 }` in `filters.numeric`, then compare the counts.
 
 A `Max` around a year reflects when the booking window opens, not guest behaviour: read the average together with min and max.
 
@@ -205,7 +205,7 @@ A `Max` around a year reflects when the booking window opens, not guest behaviou
 ```json
 { "request": {
   "propertyIds": [{{PID}}],
-  "filters": [ { "facet": "CheckInDate", "dateFilter": { "between": { "from": "{{FROM}}", "to": "{{TO}}" } } } ],
+  "filters": { "date": [ { "facet": "CheckInDate", "between": { "from": "{{FROM}}", "to": "{{TO}}" } } ] },
   "dimensions": [
     { "name": "source", "terms": { "facet": "Source" }, "size": 30, "sort": "ByCountDescending",
       "metrics": [ { "name": "bookings_total", "reservationsCount": true } ],
@@ -232,9 +232,9 @@ The only context where `Adr` is allowed.
 ```json
 { "request": {
   "propertyIds": [{{PID}}],
-  "filters": [
-    { "facet": "CheckInDate", "dateFilter": { "between": { "from": "{{FROM}}", "to": "{{TO}}" } } },
-    { "facet": "ReservationStatusSimplified", "keywordFilter": { "equalTo": "Active" } } ],
+  "filters": {
+    "date": [ { "facet": "CheckInDate", "between": { "from": "{{FROM}}", "to": "{{TO}}" } } ],
+    "keyword": [ { "facet": "ReservationStatusSimplified", "equalTo": "Active" } ] },
   "dimensions": [
     { "name": "room_type", "terms": { "facet": "RoomType" }, "size": 30, "sort": "ByCountDescending",
       "metrics": [ { "name": "bookings", "reservationsCount": true },
@@ -258,9 +258,9 @@ Settles the objection *"direct has a higher ADR only because it sells the better
 ```json
 { "request": {
   "propertyIds": [{{PID}}],
-  "filters": [
-    { "facet": "CheckInDate", "dateFilter": { "between": { "from": "{{FROM}}", "to": "{{TO}}" } } },
-    { "facet": "ReservationStatusSimplified", "keywordFilter": { "equalTo": "Active" } } ],
+  "filters": {
+    "date": [ { "facet": "CheckInDate", "between": { "from": "{{FROM}}", "to": "{{TO}}" } } ],
+    "keyword": [ { "facet": "ReservationStatusSimplified", "equalTo": "Active" } ] },
   "dimensions": [
     { "name": "channel", "terms": { "facet": "ChannelType" },
       "metrics": [ { "name": "bookings", "reservationsCount": true } ],
@@ -287,9 +287,9 @@ Settles the objection *"direct has a higher ADR only because it sells the better
 ```json
 { "request": {
   "propertyIds": [{{PID}}],
-  "filters": [
-    { "facet": "CheckInDate", "dateFilter": { "between": { "from": "{{FROM}}", "to": "{{TO}}" } } },
-    { "facet": "ChannelType", "keywordFilter": { "equalTo": "Indirect" } } ],
+  "filters": {
+    "date": [ { "facet": "CheckInDate", "between": { "from": "{{FROM}}", "to": "{{TO}}" } } ],
+    "keyword": [ { "facet": "ChannelType", "equalTo": "Indirect" } ] },
   "dimensions": [
     { "name": "source", "terms": { "facet": "Source" }, "size": 30, "sort": "ByCountDescending",
       "metrics": [ { "name": "bookings", "reservationsCount": true },
@@ -312,13 +312,13 @@ The net-ADR ranking is reliable **only for rows where commission is transmitted*
 
 ## 10 — Length of stay and MinLOS
 
-There is no numeric histogram: one call per band, changing only the `Nights` filter.
+There is no numeric histogram: one call per band, changing only the `Nights` entry in `filters.numeric`.
 
 ```json
-{ "facet": "Nights", "numericFilter": { "equalTo": 1 } }
-{ "facet": "Nights", "numericFilter": { "equalTo": 2 } }
-{ "facet": "Nights", "numericFilter": { "between": { "from": 3, "to": 4 } } }
-{ "facet": "Nights", "numericFilter": { "greaterOrEqualThan": 5 } }
+{ "facet": "Nights", "equalTo": 1 }
+{ "facet": "Nights", "equalTo": 2 }
+{ "facet": "Nights", "between": { "from": 3, "to": 4 } }
+{ "facet": "Nights", "greaterOrEqualThan": 5 }
 ```
 
 The rest of the request stays identical, with `ChannelType` as a sub-dimension and metrics `reservationsCount`, `RoomNights`, `TotalStay`.
@@ -334,10 +334,11 @@ The rest of the request stays identical, with `ChannelType` as a sub-dimension a
 ```json
 { "request": {
   "propertyIds": [{{PID}}],
-  "filters": [
-    { "facet": "CheckInDate", "dateFilter": { "between": { "from": "{{FROM}}", "to": "{{TO}}" } } },
-    { "facet": "ReservationStatusSimplified", "keywordFilter": { "equalTo": "Active" } },
-    { "facet": "ChannelType", "keywordFilter": { "equalTo": "Direct" } } ],
+  "filters": {
+    "date": [ { "facet": "CheckInDate", "between": { "from": "{{FROM}}", "to": "{{TO}}" } } ],
+    "keyword": [
+      { "facet": "ReservationStatusSimplified", "equalTo": "Active" },
+      { "facet": "ChannelType", "equalTo": "Direct" } ] },
   "dimensions": [
     { "name": "market", "terms": { "facet": "CustomerCountryCode" }, "size": 100, "sort": "ByCountDescending",
       "metrics": [ { "name": "bookings", "reservationsCount": true },
@@ -358,10 +359,11 @@ The column that matters is not volume but **ADR × LOS**: a small market with do
 ```json
 { "request": {
   "propertyIds": [{{PID}}],
-  "filters": [
-    { "facet": "RegistrationDate", "dateFilter": { "between": { "from": "{{FROM}}", "to": "{{TO}}" }, "timeZone": "{{TZ}}" } },
-    { "facet": "ReservationStatusSimplified", "keywordFilter": { "equalTo": "Active" } },
-    { "facet": "ChannelType", "keywordFilter": { "equalTo": "Direct" } } ],
+  "filters": {
+    "date": [ { "facet": "RegistrationDate", "between": { "from": "{{FROM}}", "to": "{{TO}}" }, "timeZone": "{{TZ}}" } ],
+    "keyword": [
+      { "facet": "ReservationStatusSimplified", "equalTo": "Active" },
+      { "facet": "ChannelType", "equalTo": "Direct" } ] },
   "dimensions": [
     { "name": "medium", "terms": { "facet": "TrackingUtmMedium" }, "size": 30, "sort": "ByCountDescending",
       "metrics": [ { "name": "bookings", "reservationsCount": true },
@@ -401,9 +403,9 @@ checked at time of writing.
 ```json
 { "request": {
   "propertyIds": [{{PID}}],
-  "filters": [
-    { "facet": "CheckInDate", "dateFilter": { "between": { "from": "{{FROM}}", "to": "{{TO}}" } } },
-    { "facet": "ReservationStatusSimplified", "keywordFilter": { "equalTo": "Active" } } ],
+  "filters": {
+    "date": [ { "facet": "CheckInDate", "between": { "from": "{{FROM}}", "to": "{{TO}}" } } ],
+    "keyword": [ { "facet": "ReservationStatusSimplified", "equalTo": "Active" } ] },
   "dimensions": [
     { "name": "channel", "terms": { "facet": "ChannelType" },
       "metrics": [ { "name": "bookings", "reservationsCount": true },
@@ -411,7 +413,7 @@ checked at time of writing.
                    { "name": "services", "measure": "TotalReservationServicesRevenue", "statistic": "Sum" },
                    { "name": "services_avg", "measure": "TotalReservationServicesRevenue", "statistic": "Average" },
                    { "name": "services_max", "measure": "TotalReservationServicesRevenue", "statistic": "Max" } ] },
-    { "name": "month", "calendar": { "facet": "CheckIn", "interval": "Month" }, "sort": "ByKeyAscending", "size": 14,
+    { "name": "month", "calendar": { "facet": "CheckInDate", "interval": "Month" }, "sort": "ByKeyAscending", "size": 14,
       "metrics": [ { "name": "room_revenue", "measure": "TotalStay", "statistic": "Sum" },
                    { "name": "services", "measure": "TotalReservationServicesRevenue", "statistic": "Sum" } ] } ] } }
 ```
@@ -427,10 +429,11 @@ non-additive, bucket names resolve (`Transfer Florence`, `Early check in`, `Buff
 ```json
 { "request": {
   "propertyIds": [{{PID}}],
-  "filters": [
-    { "facet": "CheckInDate", "dateFilter": { "between": { "from": "{{FROM}}", "to": "{{TO}}" } } },
-    { "facet": "ReservationStatusSimplified", "keywordFilter": { "equalTo": "Active" } },
-    { "facet": "ChannelType", "keywordFilter": { "equalTo": "Direct" } } ],
+  "filters": {
+    "date": [ { "facet": "CheckInDate", "between": { "from": "{{FROM}}", "to": "{{TO}}" } } ],
+    "keyword": [
+      { "facet": "ReservationStatusSimplified", "equalTo": "Active" },
+      { "facet": "ChannelType", "equalTo": "Direct" } ] },
   "dimensions": [
     { "name": "service", "terms": { "facet": "Service" }, "size": 30, "sort": "ByCountDescending",
       "metrics": [ { "name": "bookings", "reservationsCount": true },
@@ -454,9 +457,9 @@ Always start with a **census** of the vocabulary: if the property uses a single 
 ```json
 { "request": {
   "propertyIds": [{{PID}}],
-  "filters": [
-    { "facet": "CheckInDate", "dateFilter": { "between": { "from": "{{FROM}}", "to": "{{TO}}" } } },
-    { "facet": "ReservationStatusSimplified", "keywordFilter": { "equalTo": "Active" } } ],
+  "filters": {
+    "date": [ { "facet": "CheckInDate", "between": { "from": "{{FROM}}", "to": "{{TO}}" } } ],
+    "keyword": [ { "facet": "ReservationStatusSimplified", "equalTo": "Active" } ] },
   "dimensions": [
     { "name": "method", "terms": { "facet": "PaymentMethod" }, "size": 10, "sort": "ByCountDescending",
       "metrics": [ { "name": "bookings", "reservationsCount": true },
@@ -479,10 +482,11 @@ processed the payment (`Carta Si - Nexi Online`, `ScalaPay`, ...).
 ```json
 { "request": {
   "propertyIds": [{{PID}}],
-  "filters": [
-    { "facet": "CheckInDate", "dateFilter": { "between": { "from": "{{FROM}}", "to": "{{TO}}" } } },
-    { "facet": "ReservationStatusSimplified", "keywordFilter": { "equalTo": "Active" } },
-    { "facet": "PaymentMethod", "keywordFilter": { "equalTo": "Transactor" } } ],
+  "filters": {
+    "date": [ { "facet": "CheckInDate", "between": { "from": "{{FROM}}", "to": "{{TO}}" } } ],
+    "keyword": [
+      { "facet": "ReservationStatusSimplified", "equalTo": "Active" },
+      { "facet": "PaymentMethod", "equalTo": "Transactor" } ] },
   "dimensions": [
     { "name": "gateway", "terms": { "facet": "PaymentTransactor" }, "size": 10, "sort": "ByCountDescending",
       "metrics": [ { "name": "bookings", "reservationsCount": true },
@@ -514,9 +518,9 @@ aggregate collected.
 ```json
 { "request": {
   "propertyIds": [{{PID}}, {{PID}}, {{PID}}],
-  "filters": [
-    { "facet": "CheckInDate", "dateFilter": { "between": { "from": "{{FROM}}", "to": "{{TO}}" } } },
-    { "facet": "ReservationStatusSimplified", "keywordFilter": { "equalTo": "Active" } } ],
+  "filters": {
+    "date": [ { "facet": "CheckInDate", "between": { "from": "{{FROM}}", "to": "{{TO}}" } } ],
+    "keyword": [ { "facet": "ReservationStatusSimplified", "equalTo": "Active" } ] },
   "dimensions": [
     { "name": "property", "terms": { "facet": "Property" }, "size": 50, "sort": "ByCountDescending",
       "metrics": [ { "name": "bookings", "reservationsCount": true },
