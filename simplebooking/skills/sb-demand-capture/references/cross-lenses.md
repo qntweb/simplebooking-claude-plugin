@@ -1,13 +1,40 @@
-# The 7 cross-lenses — formal specification
+# The 9 cross-lenses — formal specification
 
-Each lens: **two inputs (one per source) → comparison → classification →
+Each lens: **inputs from two or three sources → comparison → classification →
 narration**. The classification always uses the thresholds in
 `config/defaults.yaml`, never an eyeballed judgment. If `scripts/verify.py`
 doesn't confirm the calculation, the lens produces no output — it declares
-"not reconciled" and lists the raw numbers exactly as they came from the two
+"not reconciled" and lists the raw numbers exactly as they came from the
 sources.
 
-## Two guardrails
+## The third term, and what it changed
+
+Until first-party demand existed, every lens ran between two points: **area
+demand** and **sales**. A gap between them had two incompatible readings —
+*they never reach me* and *they reach me and don't buy* — and nothing in the
+data could tell them apart. Every classification was therefore a statement
+about size, never about mechanism.
+
+`run_property_demand_aggregation` supplies the middle term: the searches
+performed on this property's own booking engine. See
+`references/property-demand.md` for its grammar, its four mechanical
+guardrails and the history floor — **read that file before writing any lens
+that uses it.**
+
+```
+area demand  →  my shop window  →  sales
+      leg 1: visibility     leg 2: conversion
+```
+
+X1 gains a decomposition into those two legs, X5 and X6 gain a middle term
+that makes their comparison honest, and two lenses exist that could not
+before: **X8** (visibility) and **X9** (denied demand).
+
+**First-party demand is optional, not required.** If the source isn't
+reachable in the session, every lens keeps its original two-point form and the
+answer states that the decomposition wasn't available. No lens depends on it.
+
+## Three guardrails
 
 1. **Minimum base (`min_gap_base_n`, default 20).** A small STLY base can
    produce a gap that's arithmetically correct but has no practical meaning.
@@ -18,6 +45,13 @@ sources.
    classify the same week two different ways ("to verify" vs "marked
    deviation"). Always compute both and pass `other_basis_classification` to
    `scripts/verify.py`: if they disagree, report both, don't silently pick one.
+3. **Levels never cross sources; only variations do.** Area demand counts every
+   property in a radius, first-party demand counts one, sales count a fraction
+   of that one. The three are different populations by construction: a level
+   from one is never subtracted from, divided by, or charted on the same axis
+   as a level from another. **Every cross-source comparison in this file is
+   between rates of change.** Within a single source, levels are the hotel's
+   own data and are reported normally.
 
 ## X1 — Comparative pace
 
@@ -39,6 +73,35 @@ sources.
   seasonality/a weak year for the whole destination — say so before
   suggesting a property-specific problem. The interesting signal is when
   they **diverge**.
+
+### X1b — Decomposition of the gap (when first-party demand is available)
+
+The X1 gap answers *how much*. Adding the middle term answers *where*. Take
+the YoY delta of first-party searches over the same window
+(`delta_own_pct_YoY`, `SearchDate` basis) and split the total:
+
+| Leg | Formula | What a negative value means |
+|---|---|---|
+| **Visibility** | `leg1_pp = delta_own_pct_YoY − delta_demand_pct_YoY` | the destination's demand is not reaching my booking engine as it used to — an acquisition problem |
+| **Conversion** | `leg2_pp = delta_sales_pct_YoY − delta_own_pct_YoY` | they reach me and buy less — a product, price, availability or restriction problem |
+
+The two legs sum to X1's total gap by construction; `scripts/verify.py`'s
+`funnel` block re-derives them and refuses the decomposition if they don't.
+Each leg is classified with the **same** `gap_thresholds` as X1.
+
+**The two legs route to different places, and that is the point of the lens.**
+A visibility leg is not this skill's to diagnose — hand it to
+`sb-direct-attribution` (which source stopped delivering) or to the marketing
+side. A conversion leg is X2, X8 and X9's territory. Say which leg carries the
+gap; never present a total gap as a single explanation when the decomposition
+is available.
+
+**Guardrail — the attribution line.** Reporting the property's own variation is
+always legitimate, with or without a comparison: *"searches on your engine fell
+19% year over year"* is a complete fact. What requires the area series is
+**attributing a cause**: the moment the sentence becomes *"because…"*, the
+control has to be there. Without it the number stays true and the explanation
+does not.
 
 ## X2 — Conversion brakes
 
@@ -107,6 +170,31 @@ sources.
   enough: even above the floor, always state the exact coverage number in the
   answer, not just when it's below threshold.
 
+**Three-term version (when first-party demand is available).** Read the same
+segment's share in *my* searches between the two existing terms:
+
+```
+share in area demand  →  share in my searches  →  share in my bookings
+```
+
+A market that is strong in the area and weak in my searches never arrives — a
+reach problem. A market strong in my searches and weak in my bookings arrives
+and doesn't convert — a product, price or content problem. The two-term version
+cannot tell them apart, and would call both "uncovered market".
+
+Field mapping via `references/property-demand.md` §7: `CustomerCountryCode`
+here, `user.countryCode` on the area side, `CustomerCountryCode` on the sales
+side. **Device needs the one-way fold**: the IBE report has `Tablet`, this tool
+does not — collapse IBE `Tablet` into Mobile before comparing, never the
+reverse. `guestType` has no first-party equivalent: that segment stays
+two-term.
+
+**`CustomerCountryCode` is filterable on the reservation side** (it was not in
+older connector revisions, and older notes said otherwise): a single market's
+ADR, lead time or revenue can be isolated rather than only read from a bucket.
+The vocabulary is not normalised, so census the bucket values and filter with
+`in` over every variant found, or the filter silently drops rows.
+
 ## X6 — Pacing
 
 - **Root cause of the original problem — two different populations, not an
@@ -141,6 +229,24 @@ sources.
   `basis_ratio_a`/`basis_ratio_b` before presenting an X6 gap as a solid
   reading.
 
+**First-party version — materially better, and the preferred one when
+available.** X6's whole difficulty is that the two populations are strangers:
+everyone searching the destination against the few who booked *here*. Swapping
+the area side for first-party demand narrows that distance to **my searchers vs
+my bookers** — same property, same booking engine, and the same field name
+`DaysInAdvance` measured the same way on both sides (§7). The populations are
+still not identical (a searcher is not a booker) so the **YoY-delta method
+still applies** and the absolute values still must not be subtracted. But the
+bias is far smaller and far more likely to be stable, which is exactly the
+assumption the method rests on.
+
+Keep computing `basis_ratio_a`/`basis_ratio_b` and passing them to
+`scripts/verify.py`: the drift check is what tells you whether the assumption
+held this time. When both versions are available, report the first-party one
+and mention the area one only if the two disagree — a disagreement is itself
+informative, since it means my searcher mix moved differently from the
+market's.
+
 ## X7 — Portfolio
 
 - **Input:** X1 (or the requested lens) repeated for each property in the group.
@@ -149,3 +255,71 @@ sources.
 - **Guardrail:** same rule as `sb-monday-brief` — if the output is for a
   single customer, no data from other properties named; the multi-property
   ranking is only for whoever manages the whole portfolio.
+
+## X8 — Visibility: area demand vs my shop window
+
+The first leg of X1b, promoted to a lens of its own because it answers a
+question hoteliers ask directly: *"is the destination's demand reaching me at
+all?"*
+
+- **Input:** area demand for the window, this year and the same window a year
+  ago (`sb-revenue-lens`, same radius on both sides); first-party searches over
+  the same **stay** window, same two years, `SearchDate` basis — with both
+  observation windows shifted together by 364 days.
+- **Comparison:** `leg1_pp = delta_own_pct_YoY − delta_demand_pct_YoY`, the
+  same arithmetic and the same `gap_thresholds` as X1.
+- **Reading:** area up and mine flat or down means the destination grew without
+  me. Both down together means the destination is softer and I am tracking it —
+  state that before suggesting anything property-specific.
+- **Output:** the fact, the classification, and **the handoff**. This skill does
+  not diagnose acquisition: which source stopped delivering is
+  `sb-direct-attribution`'s question, and the site's own health is
+  `sb-website-audit`'s. Name the leg, hand it over, don't speculate here.
+- **Guardrails:** history floor 2025-01-01 on both years of the first-party
+  side; the attribution line from X1b — the variation is reportable on its own,
+  the cause is not without the area control; levels never compared across the
+  two sources, only their rates of change.
+
+## X9 — Denied demand: what was asked for and could not be served
+
+The lens with no two-term equivalent at all. `NumberOfSolutions = 0` is a guest
+who set real parameters and was shown nothing — and the zero is clean, because
+malformed searches, abandoned ones and impossible guest compositions never
+enter the log (`references/property-demand.md` §1).
+
+- **Input, first-party side:** denied searches over the window, and the same
+  window unfiltered for the denominator; broken down by `CheckInDate` month or
+  day, by `Nights`, and by `NumberOfPersons`; `RoomNights` summed over the
+  denied set (query 8.1).
+- **Input, sales side:** actual sales and occupancy over the same **stay**
+  dates, from `sb-reservation-insights`; and, where the question is about
+  restrictions, the nights `sb-revenue-lens`'s L3 flags with an explicit
+  `MinLOS` code.
+- **Comparison — the denied share, never the count.** `denied_pct = denied /
+  total_searches` over the window, against the property's **own** baseline over
+  the preceding comparable period. A raw count moves with traffic and says
+  nothing.
+- **Classification:** thresholds in `config/defaults.yaml:property_demand`
+  (`denied_share_notable`, `denied_share_marked`), plus a minimum volume
+  (`min_searches_window`) below which the lens abstains rather than reading a
+  rate off a handful of searches.
+
+**Three mechanisms, and the breakdown tells you which — this is the lens's real
+output.** Never report the aggregate alone:
+
+| Concentration in the breakdown | Mechanism | Where it goes |
+|---|---|---|
+| on specific check-in dates, with those dates sold out in `sb-reservation-insights` | genuine sold-out — demand exceeded capacity | not a defect; it's a pricing question (`sb-revenue-lens`) |
+| on short stays, with `MinLOS` active on those dates | my own restriction refused the guest | X2, and `sb-revenue-lens` L3 |
+| on one `NumberOfPersons` value while the calendar shows availability for others | **room occupancy configuration**, not capacity | the property's room setup — no other lens detects this |
+
+That third row is the one nothing else in the toolchain finds: it looks like
+sold-out in every other view.
+
+- **Guardrails:** label the room-nights **requested and not served**, never
+  "lost" — there is no dedup key, so repeated searches by one guest inflate the
+  figure, and the phrasing must not imply recoverable revenue. Use
+  `CheckInDate` for the breakdown, never `StayDate` (non-additive buckets, and
+  the dimension ignores its own filter — §3). The denied *rate* is internal to
+  the property's own funnel and needs **no** area control; only a statement
+  about denied *volume* moving would.

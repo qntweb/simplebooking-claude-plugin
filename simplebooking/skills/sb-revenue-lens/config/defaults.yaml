@@ -73,6 +73,8 @@ sampling:
     - weekend_in_period
     - sold_out_edges          # nights adjacent to sold-out (for orphan night)
     - one_soft_midweek        # baseline for the "flat" price check
+    - unserved_nights         # Tier 2 only: nights where guests searched and
+                              # found nothing (R2). Ignored when Tier 2 is off.
 
 # ---------------------------------------------------------------------------
 # Known-hotel mapping (name -> SB Property ID). If absent: ask for the
@@ -88,3 +90,49 @@ output:
   brand: SimpleBooking
   always_show_evidence_table: true
   always_show_limits_block: true
+
+# ---------------------------------------------------------------------------
+# Tier 2 — first-party demand (OPTIONAL, Back Office MCP)
+# ---------------------------------------------------------------------------
+# Searches performed on THIS property's own booking engine, via
+# `run_property_demand_aggregation`. It sharpens L1a/L1b/L1c, L2, L5, L6, adds
+# the L3b measurement and the whole of L3c — and gates NONE of them. Every lens
+# is fully defined at Tier 1; if this tier is unavailable, skip every R2 clause
+# and run unchanged.
+#
+# Grammar and the mechanical guardrails: references/property-demand.md.
+property_demand:
+
+  # `auto` = probe once at the start of a run. On a missing tool or an
+  # authorization failure, proceed silently at Tier 1 and state the degradation
+  # ONCE in the limits block. Never estimate what this tier would have said.
+  # An external reseller without Back Office access lands here by default, and
+  # gets exactly the skill as it was before this tier existed.
+  enabled: auto
+
+  # Bot and scraping protection was rolled out through 2024 and the series
+  # falls by roughly a factor of three across that year — a ramp, not a step,
+  # so there is no clean earlier anchor. NOTHING crosses this date: not a
+  # series, not a baseline, not a "vs last year".
+  history_floor: "2025-01-01"
+
+  # ---- R2, per-night pressure --------------------------------------------
+  # Below this many searches covering a night, the average solutions figure is
+  # computed on a handful of events and swings wildly: the night is not
+  # eligible for `unserved_night` at all.
+  min_searches_night: 10
+
+  # A night whose searches found on average this many solutions or fewer counts
+  # as unserved — guests asked and there was effectively nothing to give them.
+  unserved_solutions_max: 0.25
+
+  # ---- L3c, occupancy mismatch -------------------------------------------
+  # Share of denied searches concentrated on a single NumberOfPersons value.
+  # Above this, with the calendar showing rooms for other compositions on those
+  # dates, it is the room occupancy setup and not capacity.
+  denied_pax_concentration: 0.60
+
+  # ---- L5, lead time ------------------------------------------------------
+  # `property` = my own searchers' DaysInAdvance; `area` = the Tier-1 fallback
+  # on area daysAhead. Always say which one the answer used.
+  lead_time_source: property

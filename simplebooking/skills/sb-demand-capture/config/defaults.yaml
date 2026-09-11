@@ -103,3 +103,60 @@ max_ratio_drift_pct: 15
 # sb-reservation-insights applies to its own distributions.
 # ---------------------------------------------------------------------------
 min_field_coverage: 0.25
+
+# ---------------------------------------------------------------------------
+# First-party demand — the third source (X1b, X5, X6, X8, X9)
+# ---------------------------------------------------------------------------
+# Searches performed on the property's OWN booking engine, via
+# `run_property_demand_aggregation` on the Simple Booking Back Office MCP —
+# the middle term between area demand and sales. This is the one source this
+# skill reads directly: it has no other owner, so there is no logic to
+# inherit and nothing to keep in sync (see references/orchestration.md).
+#
+# Grammar, the four mechanical guardrails and the reference queries live in
+# references/property-demand.md. Read it before writing a call: the guardrails
+# are not intuitive and produce plausible-looking wrong numbers when ignored.
+property_demand:
+
+  # `auto` = probe once per session; on a missing tool or an authorization
+  # failure, every lens silently falls back to its two-point form and the
+  # answer states that the decomposition wasn't available. NO lens may ever
+  # depend on this source.
+  enabled: auto
+
+  # Bot and scraping protection was rolled out gradually through 2024, and the
+  # series falls by roughly a factor of three across that year — a ramp, not a
+  # step, so there is no clean earlier anchor. Earlier searches are a different
+  # population, not a stronger year.
+  # NO first-party series and NO first-party comparison crosses this date.
+  history_floor: "2025-01-01"
+
+  # Below this many searches in the window, a rate computed on them is noise:
+  # X9 abstains and says so rather than reading a share off a handful.
+  min_searches_window: 200
+
+  # ---- X9, denied demand (NumberOfSolutions = 0) --------------------------
+  # Classification is on the denied SHARE against the property's own baseline
+  # over the preceding comparable period — never on the raw count, which moves
+  # with traffic and says nothing on its own.
+  # These are starting values, not universal: the denied share varies enormously
+  # with how tightly a property is booked. Re-read them on the first real
+  # validation, the same way sb-monday-brief treats its own thresholds.
+  denied_share_notable: 1.25   # >= 1.25x own baseline -> "to verify"
+  denied_share_marked:  1.60   # >= 1.60x own baseline -> "marked deviation"
+
+  # Concentration of denied searches on a single NumberOfPersons value while
+  # the calendar shows availability for other compositions. Above this share it
+  # is a room-occupancy configuration issue, not capacity — the one mechanism
+  # no other lens in the toolchain detects (see X9 in cross-lenses.md).
+  denied_pax_concentration: 0.60
+
+  # ---- X6, lead time ------------------------------------------------------
+  # `property` uses my own searchers' DaysInAdvance against my own bookers';
+  # `area` is the original two-point form kept as the fallback. The first-party
+  # version narrows the population distance enormously (my searchers vs my
+  # bookers, instead of everyone searching the destination vs my bookers) and
+  # is preferred whenever the source is available — but it does NOT remove the
+  # need for the YoY-delta method or for the max_ratio_drift_pct check: a
+  # searcher is still not a booker.
+  lead_time_source: property

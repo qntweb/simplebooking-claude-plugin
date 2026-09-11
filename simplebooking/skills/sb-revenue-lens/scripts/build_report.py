@@ -161,6 +161,29 @@ def build(data):
         scripts.append(chart_js('los', lo['labels'], lo['values'], lo.get('label','Searches per LOS'),
                                 lo.get('color_rule'), lo.get('title')))
 
+    # First-party demand (Tier 2) — a SEPARATE block on purpose, never overlaid on the
+    # destination chart above. The two series count different populations (a radius full
+    # of properties vs this one booking engine): sharing an axis would invite a
+    # comparison of levels that has no meaning. Absent when Tier 2 did not run.
+    pr = charts.get('property')
+    if pr:
+        P.append('<h2>Period overview — searches on your own booking engine</h2>')
+        if pr.get('solutions'):
+            P.append('<div class="two"><div class="chartbox"><canvas id="pdemand" height="170"></canvas></div>')
+            P.append('<div class="chartbox"><canvas id="psol" height="170"></canvas></div></div>')
+        else:
+            P.append('<div class="chartbox"><canvas id="pdemand" height="150"></canvas></div>')
+        if pr.get('caption'):
+            P.append(f'<p class="small">{pr["caption"]}</p>')
+        scripts.append(chart_js('pdemand', pr['labels'], pr['values'],
+                                pr.get('label', 'Your searches / night'),
+                                pr.get('color_rule'), pr.get('title')))
+        if pr.get('solutions'):
+            so = pr['solutions']
+            scripts.append(chart_js('psol', so['labels'], so['values'],
+                                    so.get('label', 'Avg solutions found'),
+                                    so.get('color_rule'), so.get('title')))
+
     # signals per lens
     P.append('<h2>Signals per lens</h2>')
     for l in data.get('lenses', []):

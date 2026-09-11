@@ -2,17 +2,18 @@
 """
 Check the arithmetic of a cross-lens comparison before it goes into an answer.
 
-sb-demand-capture never touches raw MCP data: it takes one number from sb-revenue-lens
-and one from sb-reservation-insights and computes a gap, a share difference or an
-intersection between them. That arithmetic is exactly the kind of thing that looks right
+sb-demand-capture takes one number from sb-revenue-lens, one from sb-reservation-insights
+and — for the lenses that use it — one from its own reading of first-party demand, then
+computes a gap, a decomposition, a share difference or an intersection between them. That arithmetic is exactly the kind of thing that looks right
 in a sentence and is wrong in the delta. This script re-derives it and exits non-zero if
 it does not hold.
 
     python3 scripts/verify.py claims.json
 
 Every block is optional: include only what the answer actually relies on. Blocks map to
-the cross-lenses in references/cross-lenses.md — "gap" for X1/X3/X6, "share" for X5,
-"intersection" for X2. A block may be one object or a list of them.
+the cross-lenses in references/cross-lenses.md — "gap" for X1/X3/X6, "funnel" for X1b/X8,
+"denied" for X9, "share" for X5, "intersection" for X2. A block may be one object or a
+list of them.
 """
 import json
 import sys
@@ -199,8 +200,159 @@ def check_intersection(block: dict, where: str) -> None:
               f"not confirmed brakes, keep them labeled as such")
 
 
+# ── funnel — X1b (scomposizione del gap) e X8 (visibilità) ──────────────────
+# Three YoY deltas over the same window: area demand, first-party searches, sales.
+# The gap X1 already reports splits into two legs that must sum back to it exactly.
+#   leg1 (visibility) = own  - demand      leg2 (conversion) = sales - own
+def check_funnel(block: dict, where: str) -> None:
+    demand_side = _num(block, "demand_side_pct", where)
+    own_side = _num(block, "own_side_pct", where)
+    sales_side = _num(block, "sales_side_pct", where)
+    if None in (demand_side, own_side, sales_side):
+        return
+
+    expected_leg1 = own_side - demand_side
+    expected_leg2 = sales_side - own_side
+    for key, expected, formula in (
+        ("claimed_leg1_pp", expected_leg1, "own_side_pct - demand_side_pct"),
+        ("claimed_leg2_pp", expected_leg2, "sales_side_pct - own_side_pct"),
+    ):
+        if key not in block:
+            continue
+        claimed = _num(block, key, where)
+        if claimed is not None and abs(expected - claimed) > PP_TOL:
+            _err(f"{where}: {key} {claimed:+.2f} does not match {formula} "
+                 f"= {expected:+.2f}")
+
+    # The decomposition is only meaningful if the legs reconstruct the total gap.
+    # If a caller supplies a total that does not close, the three numbers were not
+    # read over the same window and the whole lens is void.
+    claimed_total = block.get("claimed_gap_pp")
+    if claimed_total is not None:
+        claimed_total = _num(block, "claimed_gap_pp", where)
+        if claimed_total is not None:
+            if abs((expected_leg1 + expected_leg2) - claimed_total) > PP_TOL:
+                _err(f"{where}: the two legs sum to {expected_leg1 + expected_leg2:+.2f}pp "
+                     f"but claimed_gap_pp is {claimed_total:+.2f} — the three sides were "
+                     f"not read over the same window, the decomposition is void")
+                return
+
+    aligned_pp = _num(block, "aligned_pp", where) if "aligned_pp" in block else 5.0
+    notable_pp = _num(block, "notable_pp", where) if "notable_pp" in block else 15.0
+    if aligned_pp is None or notable_pp is None:
+        return
+    if aligned_pp >= notable_pp:
+        _err(f"{where}: aligned_pp ({aligned_pp}) must be smaller than notable_pp ({notable_pp})")
+        return
+
+    for key, expected in (("claimed_leg1_classification", expected_leg1),
+                          ("claimed_leg2_classification", expected_leg2)):
+        claimed_class = block.get(key)
+        if claimed_class is not None:
+            expected_class = _classify(expected, aligned_pp, notable_pp)
+            if claimed_class != expected_class:
+                _err(f"{where}: {key} '{claimed_class}' but the leg {expected:+.2f}pp "
+                     f"classifies as '{expected_class}'")
+
+    # Naming the leg that carries the gap is the point of the lens: a total gap
+    # presented as one explanation, when the decomposition was available, hides
+    # which of two unrelated problems the property actually has.
+    if abs(expected_leg1) > aligned_pp and abs(expected_leg2) > aligned_pp:
+        _warn(f"{where}: both legs are beyond the aligned band (visibility "
+              f"{expected_leg1:+.1f}pp, conversion {expected_leg2:+.1f}pp) — report both, "
+              f"they route to different owners and neither explains the other")
+    elif abs(expected_leg1) > aligned_pp:
+        _warn(f"{where}: the gap sits on the visibility leg ({expected_leg1:+.1f}pp) — "
+              f"this skill does not diagnose acquisition, hand it to sb-direct-attribution "
+              f"and say so instead of proposing a conversion cause")
+
+    # Same floor as check_gap: a thin sales base makes the conversion leg unstable.
+    base_n = block.get("sales_base_n")
+    if base_n is not None:
+        base_n = _num(block, "sales_base_n", where)
+        if base_n is not None:
+            min_base_n = float(block.get("min_gap_base_n", 20))
+            if base_n < min_base_n:
+                _warn(f"{where}: the sales side rests on a base of only {base_n:.0f} "
+                      f"(below the {min_base_n:.0f} floor) — report raw counts alongside "
+                      f"the conversion leg, it is the leg that base destabilises")
+
+
+# ── denied — X9 (domanda negata) ────────────────────────────────────────────
+# The readable figure is the denied SHARE against the property's own baseline,
+# never the raw count, which moves with traffic.
+def check_denied(block: dict, where: str) -> None:
+    denied = _num(block, "denied_searches", where)
+    total = _num(block, "total_searches", where)
+    if None in (denied, total):
+        return
+    if total <= 0:
+        _err(f"{where}: total_searches must be positive (got {total:.0f})")
+        return
+    if denied > total:
+        _err(f"{where}: denied_searches {denied:.0f} exceeds total_searches {total:.0f}")
+        return
+
+    expected_share = denied / total
+    claimed_share = block.get("claimed_denied_share")
+    if claimed_share is not None:
+        claimed_share = _num(block, "claimed_denied_share", where)
+        if claimed_share is not None and abs(expected_share - claimed_share) > RATIO_TOL:
+            _err(f"{where}: claimed_denied_share {claimed_share:.4f} does not match "
+                 f"{denied:.0f}/{total:.0f} = {expected_share:.4f}")
+            return
+
+    min_searches = float(block.get("min_searches_window", 200))
+    if total < min_searches:
+        _warn(f"{where}: only {total:.0f} searches in the window (below the "
+              f"{min_searches:.0f} floor) — a share computed on this is noise, the lens "
+              f"should abstain and say so rather than classify")
+
+    baseline_share = block.get("baseline_denied_share")
+    if baseline_share is not None:
+        baseline_share = _num(block, "baseline_denied_share", where)
+        if baseline_share is not None:
+            if baseline_share <= 0:
+                _err(f"{where}: baseline_denied_share must be positive to form a ratio")
+                return
+            ratio = expected_share / baseline_share
+            notable = float(block.get("denied_share_notable", 1.25))
+            marked = float(block.get("denied_share_marked", 1.60))
+            if notable >= marked:
+                _err(f"{where}: denied_share_notable ({notable}) must be smaller than "
+                     f"denied_share_marked ({marked})")
+                return
+            expected_class = ("scostamento marcato" if ratio >= marked
+                              else "da verificare" if ratio >= notable
+                              else "in linea")
+            claimed_class = block.get("claimed_classification")
+            if claimed_class is not None and claimed_class != expected_class:
+                _err(f"{where}: claimed_classification '{claimed_class}' but the denied "
+                     f"share {expected_share:.1%} against a baseline of "
+                     f"{baseline_share:.1%} is {ratio:.2f}x, which classifies as "
+                     f"'{expected_class}'")
+
+    # The aggregate alone is not the output of X9: the breakdown is what separates
+    # sold-out from a MinLOS refusal from an occupancy-configuration problem.
+    if not block.get("breakdown_reported"):
+        _warn(f"{where}: no breakdown reported — a denied share without its check-in "
+              f"date, LOS and persons breakdown cannot distinguish genuine sold-out from "
+              f"a restriction or an occupancy misconfiguration, and must not be presented "
+              f"as a finding on its own")
+
+    # There is no dedup key between searches and reservations, so repeated searches
+    # by one guest inflate the room-night figure. The wording must not imply
+    # recoverable revenue.
+    if block.get("room_nights") is not None and not block.get("labeled_as_requested"):
+        _warn(f"{where}: room_nights is reported — label it 'requested and not served', "
+              f"never 'lost': there is no dedup key, several searches by one guest inflate "
+              f"it, and 'lost' reads as recoverable revenue")
+
+
 CHECKS = {
     "gap": check_gap,
+    "funnel": check_funnel,
+    "denied": check_denied,
     "share": check_share,
     "intersection": check_intersection,
 }

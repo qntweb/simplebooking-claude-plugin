@@ -1,5 +1,19 @@
 <meta charset="utf-8">
-<title>SimpleBooking · Demand vs Sales — Example Questions</title>
+<title>SimpleBooking · Demand vs Sales — Domande di esempio</title>
+<!--
+  Guscio HTML del catalogo domande di sb-demand-capture.
+  NON e' il file distribuito: l'output e'
+  sb-demand-capture/templates/sb-demand-capture-example-questions.html,
+  generato da dev/build_question_catalog.py che sostituisce __DATA_JSON__.
+
+  Changelog (interno - non visibile nella pagina)
+  v1.0 - 2026-08-31 - Prima versione: 29 domande, 9 categorie, IT + EN, scritta a mano.
+  v1.1 - 2026-09-11 - Aggiunta la lingua tedesca (terzo pulsante). Il catalogo passa a
+  sorgente unica generata (dev/question-catalog.json + dev/client-ui-strings.json), come
+  sb-reservation-insights. Numerazione domande da intero globale (1-29) a codice stabile
+  per categoria (es. DS-1): un numero puro si rompe ogni volta che si aggiunge una domanda
+  o una categoria. Conteggi di domande e categorie calcolati dal dato, non scritti a mano.
+-->
 
 <style>
   :root {
@@ -231,11 +245,16 @@
   li.q:first-child { border-top: none; }
   .qgrid {
     display: grid;
-    grid-template-columns: 2rem 1fr auto;
+    grid-template-columns: 2.8rem 1fr auto;
     gap: .5rem;
     align-items: start;
-    padding-top: .35rem;
+    padding: .35rem .6rem;
+    margin: 0 -.6rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .12s ease;
   }
+  .qgrid:hover, .qgrid:focus-within { background: var(--soft); }
   .qnum {
     font-family: var(--mono);
     font-size: .78rem;
@@ -270,6 +289,18 @@
   }
   .copy:hover { border-color: var(--accent); color: var(--accent); background: #fff; }
   .copy[data-done="1"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .qgrid .copy, .fu-item .copy {
+    opacity: 0;
+    transition: opacity .12s ease, background .12s ease, color .12s ease, border-color .12s ease;
+  }
+  .qgrid:hover .copy, .qgrid:focus-within .copy,
+  .fu-item:hover .copy, .fu-item:focus-within .copy,
+  .qgrid .copy[data-done="1"], .fu-item .copy[data-done="1"] {
+    opacity: 1;
+  }
+  @media (hover: none) {
+    .qgrid .copy, .fu-item .copy { opacity: 1; }
+  }
 
   .fu {
     grid-column: 2 / -1;
@@ -283,8 +314,13 @@
     gap: .5rem;
     align-items: start;
     border-left: 2px solid var(--line);
-    padding: .1rem 0 .1rem .65rem;
+    padding: .22rem .5rem .22rem .65rem;
+    margin-right: -.5rem;
+    border-radius: 0 6px 6px 0;
+    cursor: pointer;
+    transition: background .12s ease, border-color .12s ease;
   }
+  .fu-item:hover, .fu-item:focus-within { background: var(--soft); border-left-color: var(--accent); }
   .fu-item .t {
     font-size: .84rem;
     color: var(--muted);
@@ -303,20 +339,6 @@
     margin-bottom: .1rem;
   }
   .fu-item .copy { font-size: .64rem; padding: .22rem .5rem; }
-
-  /* ── caveat ───────────────────────────────────────────── */
-  .caveat {
-    background: var(--soft);
-    border: 1px solid var(--line);
-    border-left: 3px solid var(--accent);
-    border-radius: 8px;
-    padding: .9rem 1.1rem;
-    color: var(--ink);
-    font-size: var(--step--1);
-    max-width: 1180px;
-    margin: 0 auto;
-  }
-  .caveat b { color: var(--navy); }
 
   /* ── outro ────────────────────────────────────────────── */
   .outro { border-top: 1px solid var(--line); padding-top: 2rem; margin-top: .5rem; }
@@ -339,6 +361,20 @@
 
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+  /* ── caveat ─────────────────────────────────────────── */
+  .caveat {
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: .9rem 1.1rem;
+    color: var(--ink);
+    font-size: var(--step--1);
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .caveat b { color: var(--navy); }
 </style>
 
 <div class="hero">
@@ -347,6 +383,7 @@
       <div class="switch" role="group">
         <button type="button" data-lang="it" aria-pressed="true">IT</button>
         <button type="button" data-lang="en" aria-pressed="false">EN</button>
+        <button type="button" data-lang="de" aria-pressed="false">DE</button>
       </div>
     </div>
 
@@ -391,7 +428,7 @@
 <div class="outro-wrap">
   <footer class="outro">
     <div class="foot-block">
-      <div class="foot-brand"><b style="color:#0f2e4d">Simple</b>Booking · Domanda vs Vendite</div>
+      <div class="foot-brand"><b style="color:#0f2e4d">Simple</b>Booking · Demand vs Sales</div>
       <p class="foot-note" data-t="foot"></p>
       <p class="foot-meta"><span data-t="version"></span> · <span data-t="copyright"></span></p>
     </div>
@@ -400,182 +437,654 @@
 
 <script>
 const DATA = {
-  it: {
-    eyebrow: "SimpleBooking · Booking Engine × Back Office",
-    title: "23 domande che uniscono domanda e vendite",
-    lede: "Un assistente AI collegato allo stesso tempo al Booking Engine (domanda d'area, disponibilità, prezzi) e al Back Office (prenotazioni reali) può rispondere a domande che nessuno dei due, da solo, può risolvere: se la domanda di mercato c'è e tu non la converti, o se il mercato per certe date non c'è affatto. 23 esempi, organizzati per argomento.",
-    pillCount: "23 domande",
-    pillCats: "7 categorie",
-    pillSource: "Booking Engine + Back Office SimpleBooking",
-    setupLabel: "Da dire per primo",
-    setupPrompt: "Lavoriamo su {{NOME HOTEL}}, property {{PROPERTY_ID}}. Per tutte le domande che seguono tieni collegati sia il Booking Engine sia il Back Office di questa struttura, senza chiedermelo di nuovo. La domanda d'area è calcolata sulla destinazione, non sulla singola struttura: quando è rilevante per interpretare la risposta, dichiaralo sempre. Se una domanda richiede un periodo: quando non è chiaro né deducibile dal contesto, chiedimelo prima di rispondere invece di tirarlo a caso; se un default ragionevole esiste, usalo pure, ma dichiara sempre quale periodo hai usato.",
-    setupNote: "Sostituisci i due segnaposto con la tua struttura — se non conosci il Property ID puoi lasciarlo vuoto, te lo chiederà o lo cercherà da solo. Da qui in poi nessuna delle domande dovrà ripetere la property.",
-    caveatText: "<b>Da tenere a mente:</b> la domanda d'area del Booking Engine misura le ricerche sulla destinazione, non sulla tua struttura specifica — hotel vicini vedono la stessa domanda. Per questo i confronti qui sotto non sono un vero \"tasso di conversione\", ma un indicatore di quanto la tua struttura sta catturando (o mancando) il mercato che la circonda.",
-    indexLabel: "Categorie",
-    copy: "Copia",
-    copied: "Copiato",
-    followTag: "Poi puoi chiedere",
-    foot: "Questo catalogo accompagna la skill sb-demand-capture, che orchestra sb-revenue-lens (Booking Engine) e sb-reservation-insights (Back Office) senza ricalcolarne la logica. È una versione v1, non ancora validata su dati reali: prima di usarla con un cliente, verifica i risultati su una struttura vera. Le risposte useranno sempre i dati della tua struttura — quelli qui sopra sono solo esempi di domanda. Per informazioni contatta il tuo referente SimpleBooking.",
-    version: "Versione 1.0 — 31 agosto 2026",
-    copyright: "© 2025-2026 SimpleBooking — Zucchetti Group. Tutti i diritti riservati.",
-    cats: [
+  "it": {
+    "eyebrow": "SimpleBooking · Booking Engine × Back Office",
+    "title": "29 domande che uniscono domanda e vendite",
+    "lede": "Un assistente AI collegato allo stesso tempo al Booking Engine (domanda d'area, disponibilità, prezzi) e al Back Office (ricerche sul tuo motore e prenotazioni reali) può rispondere a domande che nessuno dei due, da solo, può risolvere: se il mercato c'è e tu non lo converti, se non ti trova affatto, o se stai rifiutando richieste senza saperlo. 29 esempi, organizzati per argomento.",
+    "pillCount": "29 domande",
+    "pillCats": "9 categorie",
+    "pillSource": "Booking Engine + Back Office SimpleBooking",
+    "setupLabel": "Da dire per primo",
+    "setupPrompt": "Lavoriamo su {{NOME HOTEL}}, property {{PROPERTY_ID}}. Per tutte le domande che seguono tieni collegati sia il Booking Engine sia il Back Office di questa struttura, senza chiedermelo di nuovo. La domanda d'area è calcolata sulla destinazione, non sulla singola struttura: quando è rilevante per interpretare la risposta, dichiaralo sempre. Se una domanda richiede un periodo: quando non è chiaro né deducibile dal contesto, chiedimelo prima di rispondere invece di tirarlo a caso; se un default ragionevole esiste, usalo pure, ma dichiara sempre quale periodo hai usato.",
+    "setupNote": "Sostituisci i due segnaposto con la tua struttura — se non conosci il Property ID puoi lasciarlo vuoto, te lo chiederà o lo cercherà da solo. Da qui in poi nessuna delle domande dovrà ripetere la property.",
+    "caveatText": "<b>Da tenere a mente:</b> qui convivono due misure di domanda diverse. Quella <i>d'area</i> misura le ricerche sulla destinazione, non sulla tua struttura — hotel vicini vedono lo stesso numero. Quella <i>sul tuo booking engine</i> è invece solo tua. Le due non si sommano e non si confrontano nei valori assoluti: si confrontano nelle variazioni, ed è proprio quel confronto che dice se il mercato non ti raggiunge o se ti raggiunge e non compra. Il rapporto fra ricerche e prenotazioni resta un indicatore, non un'attribuzione: non esiste un legame fra la singola ricerca e la singola prenotazione.",
+    "indexLabel": "Categorie",
+    "copy": "Copia",
+    "copied": "Copiato",
+    "followTag": "Poi puoi chiedere",
+    "foot": "Questo catalogo accompagna la skill sb-demand-capture, che orchestra sb-revenue-lens (Booking Engine) e sb-reservation-insights (Back Office) senza ricalcolarne la logica. È una versione v1, non ancora validata su dati reali: prima di usarla con un cliente, verifica i risultati su una struttura vera. Le risposte useranno sempre i dati della tua struttura — quelli qui sopra sono solo esempi di domanda. Per informazioni contatta il tuo referente SimpleBooking.",
+    "version": "Versione 1.1 — 11 settembre 2026",
+    "copyright": "© 2025-2026 SimpleBooking — Zucchetti Group. Tutti i diritti riservati.",
+    "cats": [
       {
-        t: "Domanda vs vendite reali",
-        why: "La domanda d'area ti dice quanto il mercato cerca la tua destinazione; il Back Office ti dice quanto stai davvero vendendo. Messe insieme, capisci se il problema è il mercato o sei tu.",
-        qs: [
-          { n: 1, q: "Questo mese la domanda d'area sta crescendo o calando rispetto al mese scorso? Il mio on-the-books segue lo stesso andamento?", fu: ["Se calano insieme è normale stagionalità: dove sto invece perdendo terreno rispetto al mercato?"] },
-          { n: 2, q: "Sulle prossime tre settimane, quanta domanda d'area c'è stata rispetto alle prenotazioni che ho davvero acquisito?" },
-          { n: 3, q: "Negli ultimi 12 mesi, il mio fatturato ha seguito la stagionalità della domanda d'area, o mi sono mosso controcorrente?" },
-          { n: 4, q: "Quali settimane del prossimo trimestre hanno la domanda d'area più alta, e a che punto sono con l'on-the-books su quelle stesse settimane?" }
+        "t": "Domanda vs vendite reali",
+        "code": "DS",
+        "why": "La domanda d'area ti dice quanto il mercato cerca la tua destinazione; il Back Office ti dice quanto stai davvero vendendo. Messe insieme, capisci se il problema è il mercato o sei tu.",
+        "qs": [
+          {
+            "n": "DS-1",
+            "q": "Questo mese la domanda d'area sta crescendo o calando rispetto al mese scorso? Il mio on-the-books segue lo stesso andamento?",
+            "fu": [
+              "Se calano insieme è normale stagionalità: dove sto invece perdendo terreno rispetto al mercato?"
+            ]
+          },
+          {
+            "n": "DS-2",
+            "q": "Sulle prossime tre settimane, quanta domanda d'area c'è stata rispetto alle prenotazioni che ho davvero acquisito?"
+          },
+          {
+            "n": "DS-3",
+            "q": "Negli ultimi 12 mesi, il mio fatturato ha seguito la stagionalità della domanda d'area, o mi sono mosso controcorrente?"
+          },
+          {
+            "n": "DS-4",
+            "q": "Quali settimane del prossimo trimestre hanno la domanda d'area più alta, e a che punto sono con l'on-the-books su quelle stesse settimane?"
+          }
         ]
       },
       {
-        t: "Perché non converto",
-        why: "Quando la domanda c'è ma le prenotazioni reali no, il problema è quasi sempre a valle: una restrizione, una chiusura, un prezzo. Qui lo verifichi riga per riga.",
-        qs: [
-          { n: 5, q: "Su una data con domanda d'area alta ma pochissime prenotazioni reali, è colpa del minimum stay, della disponibilità chiusa o del prezzo?" },
-          { n: 6, q: "Quali notti ad alta domanda risultano \"non prenotabili\" sul calendario disponibilità?", fu: ["Di quelle notti, quante erano già chiuse una settimana prima?"] },
-          { n: 7, q: "Il mio minimum stay attuale, applicato alla domanda futura e non solo allo storico prenotato, quante ricerche rischia di respingere?" },
-          { n: 8, q: "Le date dove ricevo più soggiorni di una notte sola hanno anche una domanda d'area concentrata su soggiorni brevi?" }
+        "t": "Perché non converto",
+        "code": "NC",
+        "why": "Quando la domanda c'è ma le prenotazioni reali no, il problema è quasi sempre a valle: una restrizione, una chiusura, un prezzo. Qui lo verifichi riga per riga.",
+        "qs": [
+          {
+            "n": "NC-1",
+            "q": "Su una data con domanda d'area alta ma pochissime prenotazioni reali, è colpa del minimum stay, della disponibilità chiusa o del prezzo?"
+          },
+          {
+            "n": "NC-2",
+            "q": "Quali notti ad alta domanda risultano \"non prenotabili\" sul calendario disponibilità?",
+            "fu": [
+              "Di quelle notti, quante erano già chiuse una settimana prima?"
+            ]
+          },
+          {
+            "n": "NC-3",
+            "q": "Il mio minimum stay attuale, applicato alla domanda futura e non solo allo storico prenotato, quante ricerche rischia di respingere?"
+          },
+          {
+            "n": "NC-4",
+            "q": "Le date dove ricevo più soggiorni di una notte sola hanno anche una domanda d'area concentrata su soggiorni brevi?"
+          }
         ]
       },
       {
-        t: "Prezzo e parità per canale",
-        why: "Il prezzo che vendi davvero su un portale e quello che il tuo booking engine espone in parità dovrebbero coincidere. Quando non succede, qualcuno ci guadagna e non sei tu.",
-        qs: [
-          { n: 9, q: "Il mio ADR reale su Booking.com coincide con il prezzo che il booking engine espone in parità OTA per le stesse date?" },
-          { n: 10, q: "Ci sono date in cui il prezzo esposto sul mio booking engine è più alto di quello che vendo davvero su OTA?" },
-          { n: 11, q: "C'è un canale che sta guadagnando quota perché il mio prezzo diretto non regge il confronto con la domanda di mercato?" }
+        "t": "Prezzo e parità per canale",
+        "code": "PP",
+        "why": "Il prezzo che vendi davvero su un portale e quello che il tuo booking engine espone in parità dovrebbero coincidere. Quando non succede, qualcuno ci guadagna e non sei tu.",
+        "qs": [
+          {
+            "n": "PP-1",
+            "q": "Il mio ADR reale su Booking.com coincide con il prezzo che il booking engine espone in parità OTA per le stesse date?"
+          },
+          {
+            "n": "PP-2",
+            "q": "Ci sono date in cui il prezzo esposto sul mio booking engine è più alto di quello che vendo davvero su OTA?"
+          },
+          {
+            "n": "PP-3",
+            "q": "C'è un canale che sta guadagnando quota perché il mio prezzo diretto non regge il confronto con la domanda di mercato?"
+          }
         ]
       },
       {
-        t: "Prodotto e catalogo vs domanda",
-        why: "Pacchetti, offerte e tipologie di camera dovrebbero rincorrere la domanda, non il contrario. Qui verifichi se il tuo catalogo copre davvero ciò che il mercato cerca.",
-        qs: [
-          { n: 12, q: "I pacchetti che ho a catalogo intercettano davvero i periodi di picco della domanda d'area?" },
-          { n: 13, q: "Le offerte attive in questo momento coincidono con periodi di domanda debole? Stanno funzionando?" },
-          { n: 14, q: "C'è un segmento di domanda — famiglie, coppie, viaggiatori business — visibile nella domanda d'area ma che il mio catalogo camere non copre bene?" }
+        "t": "Prodotto e catalogo vs domanda",
+        "code": "PC",
+        "why": "Pacchetti, offerte e tipologie di camera dovrebbero rincorrere la domanda, non il contrario. Qui verifichi se il tuo catalogo copre davvero ciò che il mercato cerca.",
+        "qs": [
+          {
+            "n": "PC-1",
+            "q": "I pacchetti che ho a catalogo intercettano davvero i periodi di picco della domanda d'area?"
+          },
+          {
+            "n": "PC-2",
+            "q": "Le offerte attive in questo momento coincidono con periodi di domanda debole? Stanno funzionando?"
+          },
+          {
+            "n": "PC-3",
+            "q": "C'è un segmento di domanda — famiglie, coppie, viaggiatori business — visibile nella domanda d'area ma che il mio catalogo camere non copre bene?"
+          }
         ]
       },
       {
-        t: "Mercati e segmenti: chi cerca vs chi prenota",
-        why: "La domanda d'area segmenta per provenienza, composizione e dispositivo. Confrontata con chi prenota davvero, mostra dove stai lasciando un mercato scoperto.",
-        qs: [
-          { n: 15, q: "Da quali paesi arriva la domanda d'area sulla mia destinazione, e coincide con i mercati di provenienza dei miei ospiti reali?", fu: ["C'è un mercato estero visibile nella domanda ma quasi assente dalle mie prenotazioni?"] },
-          { n: 16, q: "Le famiglie con bambini cercano la mia destinazione più di quanto prenotino effettivamente da me?" },
-          { n: 17, q: "Il dispositivo con cui il mercato cerca (mobile o desktop) coincide con quello dei miei prenotanti diretti?" }
+        "t": "Mercati e segmenti: chi cerca vs chi prenota",
+        "code": "MS",
+        "why": "La domanda d'area segmenta per provenienza, composizione e dispositivo. Confrontata con chi prenota davvero, mostra dove stai lasciando un mercato scoperto.",
+        "qs": [
+          {
+            "n": "MS-1",
+            "q": "Da quali paesi arriva la domanda d'area sulla mia destinazione, e coincide con i mercati di provenienza dei miei ospiti reali?",
+            "fu": [
+              "C'è un mercato estero visibile nella domanda ma quasi assente dalle mie prenotazioni?"
+            ]
+          },
+          {
+            "n": "MS-2",
+            "q": "Le famiglie con bambini cercano la mia destinazione più di quanto prenotino effettivamente da me?"
+          },
+          {
+            "n": "MS-3",
+            "q": "Il dispositivo con cui il mercato cerca (mobile o desktop) coincide con quello dei miei prenotanti diretti?"
+          }
         ]
       },
       {
-        t: "Finestra di prenotazione e pacing",
-        why: "Sapere con quanto anticipo il mercato cerca queste date, non solo con quanto anticipo tu vendi, ti dice quando è il momento giusto per aprire prezzi e pacchetti.",
-        qs: [
-          { n: 18, q: "Il mio anticipo di vendita reale è coerente con quanto anticipo il mercato cerca queste stesse date?" },
-          { n: 19, q: "In base a quando il mercato inizia a cercare un periodo, dovrei aprire prima le vendite di un pacchetto o di un'offerta?" },
-          { n: 20, q: "Per l'ultimo trimestre dell'anno, la domanda d'area a lungo anticipo sta già superando il mio on-the-books per lo stesso periodo?" }
+        "t": "Finestra di prenotazione e pacing",
+        "code": "BW",
+        "why": "Sapere con quanto anticipo il mercato cerca queste date, non solo con quanto anticipo tu vendi, ti dice quando è il momento giusto per aprire prezzi e pacchetti.",
+        "qs": [
+          {
+            "n": "BW-1",
+            "q": "Il mio anticipo di vendita reale è coerente con quanto anticipo il mercato cerca queste stesse date?"
+          },
+          {
+            "n": "BW-2",
+            "q": "In base a quando il mercato inizia a cercare un periodo, dovrei aprire prima le vendite di un pacchetto o di un'offerta?"
+          },
+          {
+            "n": "BW-3",
+            "q": "Per l'ultimo trimestre dell'anno, la domanda d'area a lungo anticipo sta già superando il mio on-the-books per lo stesso periodo?"
+          }
         ]
       },
       {
-        t: "Portafoglio multi-struttura",
-        why: "Se gestisci più hotel nella stessa area o in aree diverse, qui confronti chi sta davvero catturando la domanda della propria destinazione.",
-        qs: [
-          { n: 21, q: "Quale struttura del gruppo converte meglio la domanda d'area della propria destinazione in prenotazioni reali?" },
-          { n: 22, q: "A parità di domanda d'area nella stessa città, quale hotel del portafoglio vende meglio, e con quale ADR?" },
-          { n: 23, q: "Fra due strutture con domanda d'area simile, quale ha il minimum stay più stringente, e si vede nella differenza di vendite?" }
+        "t": "Portafoglio multi-struttura",
+        "code": "MP",
+        "why": "Se gestisci più hotel nella stessa area o in aree diverse, qui confronti chi sta davvero catturando la domanda della propria destinazione.",
+        "qs": [
+          {
+            "n": "MP-1",
+            "q": "Quale struttura del gruppo converte meglio la domanda d'area della propria destinazione in prenotazioni reali?"
+          },
+          {
+            "n": "MP-2",
+            "q": "A parità di domanda d'area nella stessa città, quale hotel del portafoglio vende meglio, e con quale ADR?"
+          },
+          {
+            "n": "MP-3",
+            "q": "Fra due strutture con domanda d'area simile, quale ha il minimum stay più stringente, e si vede nella differenza di vendite?"
+          }
+        ]
+      },
+      {
+        "t": "Mi trovano? Visibilità della struttura",
+        "code": "PV",
+        "why": "Fra la domanda della destinazione e le tue vendite c'è un passaggio che finora non si vedeva: quante di quelle ricerche arrivano davvero sul tuo booking engine. Se il mercato cresce e il traffico sul tuo motore no, il problema è a monte delle tariffe.",
+        "qs": [
+          {
+            "n": "PV-1",
+            "q": "Rispetto a un anno fa, le ricerche sul mio booking engine sono cresciute quanto la domanda della mia destinazione?",
+            "fu": [
+              "Se la destinazione è cresciuta e io no, di quanto sono rimasto indietro in punti percentuali?"
+            ]
+          },
+          {
+            "n": "PV-2",
+            "q": "Il calo delle mie vendite viene da meno gente che mi trova, o da meno gente che compra dopo avermi trovato?"
+          },
+          {
+            "n": "PV-3",
+            "q": "Da che dispositivo e da che paesi mi cercano, e assomiglia a chi cerca la destinazione nel suo complesso?"
+          }
+        ]
+      },
+      {
+        "t": "Richieste che ho rifiutato",
+        "code": "RT",
+        "why": "Ogni volta che un ospite imposta date e ospiti e il motore non ha nulla da proporgli, quella richiesta resta registrata. È l'unico modo di vedere la domanda che hai perso senza accorgertene — e il dettaglio dice se è tutto esaurito, una tua regola, o la configurazione delle camere.",
+        "qs": [
+          {
+            "n": "RT-1",
+            "q": "Quante ricerche sul mio booking engine non hanno trovato nessuna soluzione nell'ultimo mese, e quanto pesano sul totale?",
+            "fu": [
+              "Su quali date di check-in si concentrano?"
+            ]
+          },
+          {
+            "n": "RT-2",
+            "q": "Le richieste che ho rifiutato erano soggiorni corti su date con minimum stay attivo, o erano date davvero esaurite?"
+          },
+          {
+            "n": "RT-3",
+            "q": "C'è una composizione di ospiti — due persone, famiglie, tripli — che rifiuto molto più delle altre pur avendo camere libere?"
+          }
         ]
       }
     ]
   },
-
-  en: {
-    eyebrow: "SimpleBooking · Booking Engine × Back Office",
-    title: "23 questions that connect demand and sales",
-    lede: "An AI assistant connected to both the Booking Engine (area demand, availability, prices) and the Back Office (actual bookings) at once can answer questions neither can resolve alone: whether market demand exists and you are not converting it, or whether the market for certain dates simply isn't there. 23 examples, organized by topic.",
-    pillCount: "23 questions",
-    pillCats: "7 categories",
-    pillSource: "Booking Engine + Back Office SimpleBooking",
-    setupLabel: "Say this first",
-    setupPrompt: "We are working on {{HOTEL NAME}}, property {{PROPERTY_ID}}. For every question that follows, keep both the Booking Engine and the Back Office of this property connected, without asking me again. Area demand is calculated at the destination level, not for this specific property: whenever that matters for interpreting an answer, state it. If a question needs a period: when it is not clear and cannot be inferred from context, ask me before answering instead of guessing; if a reasonable default exists, go ahead and use it, but always state in the answer which period you used.",
-    setupNote: "Replace the two placeholders with your property — if you do not know the Property ID you can leave it blank, the assistant will ask or look it up itself. From here on, none of the questions repeat the property.",
-    caveatText: "<b>Worth keeping in mind:</b> the Booking Engine's area demand measures searches for the destination, not for your specific property — nearby hotels see the same demand. So the comparisons below are not a true \"conversion rate\", but a signal of how much of the surrounding market your property is capturing, or missing.",
-    indexLabel: "Categories",
-    copy: "Copy",
-    copied: "Copied",
-    followTag: "Then you can ask",
-    foot: "This catalog comes with the sb-demand-capture skill, which orchestrates sb-revenue-lens (Booking Engine) and sb-reservation-insights (Back Office) without recomputing their logic. It is a v1, not yet validated on real data: verify the results on a real property before using it with a client. The answers will always use your own property's data — the examples above are just the questions. For more information, contact your SimpleBooking representative.",
-    version: "Version 1.0 — August 31, 2026",
-    copyright: "© 2025-2026 SimpleBooking — Zucchetti Group. All rights reserved.",
-    cats: [
+  "en": {
+    "eyebrow": "SimpleBooking · Booking Engine × Back Office",
+    "title": "29 questions that connect demand and sales",
+    "lede": "An AI assistant connected at the same time to the Booking Engine (area demand, availability, prices) and the Back Office (searches on your own engine and actual bookings) can answer questions neither of them can resolve alone: whether the market is there and you are not converting it, whether it isn't finding you at all, or whether you are turning requests away without knowing. 29 examples, organized by topic.",
+    "pillCount": "29 questions",
+    "pillCats": "9 categories",
+    "pillSource": "Booking Engine + Back Office SimpleBooking",
+    "setupLabel": "Say this first",
+    "setupPrompt": "We are working on {{HOTEL NAME}}, property {{PROPERTY_ID}}. For every question that follows, keep both the Booking Engine and the Back Office of this property connected, without asking me again. Area demand is calculated at the destination level, not for this specific property: whenever that matters for interpreting an answer, state it. If a question needs a period: when it is not clear and cannot be inferred from context, ask me before answering instead of guessing; if a reasonable default exists, go ahead and use it, but always state in the answer which period you used.",
+    "setupNote": "Replace the two placeholders with your property — if you do not know the Property ID you can leave it blank, the assistant will ask or look it up itself. From here on, none of the questions repeat the property.",
+    "caveatText": "<b>Worth keeping in mind:</b> two different measures of demand sit side by side here. <i>Area</i> demand measures searches for the destination, not for your property — nearby hotels see the same number. Demand <i>on your own booking engine</i>, by contrast, is yours alone. The two do not add up and cannot be compared in absolute values: what you compare is how they move, and it is exactly that comparison that tells you whether the market isn't reaching you, or is reaching you and not buying. The ratio between searches and bookings remains an indicator, not an attribution: there is no link between an individual search and an individual booking.",
+    "indexLabel": "Categories",
+    "copy": "Copy",
+    "copied": "Copied",
+    "followTag": "Then you can ask",
+    "foot": "This catalog comes with the sb-demand-capture skill, which orchestrates sb-revenue-lens (Booking Engine) and sb-reservation-insights (Back Office) without recomputing their logic. It is a v1, not yet validated on real data: verify the results on a real property before using it with a client. The answers will always use your own property's data — the examples above are just the questions. For more information, contact your SimpleBooking representative.",
+    "version": "Version 1.1 — September 11, 2026",
+    "copyright": "© 2025-2026 SimpleBooking — Zucchetti Group. All rights reserved.",
+    "cats": [
       {
-        t: "Demand vs actual sales",
-        why: "Area demand tells you how much the market searches for your destination; the Back Office tells you how much you are really selling. Put together, you find out whether the problem is the market or you.",
-        qs: [
-          { n: 1, q: "Is area demand growing or falling this month compared with last month? Does my on-the-books follow the same trend?", fu: ["If both fall together that's normal seasonality: where am I instead losing ground against the market?"] },
-          { n: 2, q: "Over the next three weeks, how much area demand was there compared with the bookings I actually picked up?" },
-          { n: 3, q: "Over the last 12 months, has my revenue followed the seasonality of area demand, or have I moved against it?" },
-          { n: 4, q: "Which weeks of next quarter have the highest area demand, and where do I stand with on-the-books for those same weeks?" }
+        "t": "Demand vs actual sales",
+        "code": "DS",
+        "why": "Area demand tells you how much the market searches for your destination; the Back Office tells you how much you are really selling. Put together, you find out whether the problem is the market or you.",
+        "qs": [
+          {
+            "n": "DS-1",
+            "q": "Is area demand growing or falling this month compared with last month? Does my on-the-books follow the same trend?",
+            "fu": [
+              "If both fall together that's normal seasonality: where am I instead losing ground against the market?"
+            ]
+          },
+          {
+            "n": "DS-2",
+            "q": "Over the next three weeks, how much area demand was there compared with the bookings I actually picked up?"
+          },
+          {
+            "n": "DS-3",
+            "q": "Over the last 12 months, has my revenue followed the seasonality of area demand, or have I moved against it?"
+          },
+          {
+            "n": "DS-4",
+            "q": "Which weeks of next quarter have the highest area demand, and where do I stand with on-the-books for those same weeks?"
+          }
         ]
       },
       {
-        t: "Why am I not converting",
-        why: "When demand exists but real bookings don't, the problem is almost always downstream: a restriction, a closure, a price. Here you check it line by line.",
-        qs: [
-          { n: 5, q: "On a date with high area demand but very few real bookings, is it the minimum stay, closed availability, or the price?" },
-          { n: 6, q: "Which high-demand nights show up as \"not bookable\" on the availability calendar?", fu: ["Of those nights, how many were already closed a week earlier?"] },
-          { n: 7, q: "Applied to future demand, not just to booked history, how many searches does my current minimum stay risk turning away?" },
-          { n: 8, q: "Do the dates where I get the most single-night stays also show area demand concentrated on short stays?" }
+        "t": "Why am I not converting",
+        "code": "NC",
+        "why": "When demand exists but real bookings don't, the problem is almost always downstream: a restriction, a closure, a price. Here you check it line by line.",
+        "qs": [
+          {
+            "n": "NC-1",
+            "q": "On a date with high area demand but very few real bookings, is it the minimum stay, closed availability, or the price?"
+          },
+          {
+            "n": "NC-2",
+            "q": "Which high-demand nights show up as \"not bookable\" on the availability calendar?",
+            "fu": [
+              "Of those nights, how many were already closed a week earlier?"
+            ]
+          },
+          {
+            "n": "NC-3",
+            "q": "Applied to future demand, not just to booked history, how many searches does my current minimum stay risk turning away?"
+          },
+          {
+            "n": "NC-4",
+            "q": "Do the dates where I get the most single-night stays also show area demand concentrated on short stays?"
+          }
         ]
       },
       {
-        t: "Price and channel parity",
-        why: "The price you actually sell on a portal and the one your booking engine shows in parity should match. When they don't, someone else is profiting, not you.",
-        qs: [
-          { n: 9, q: "Does my real ADR on Booking.com match the price my booking engine shows in OTA parity for the same dates?" },
-          { n: 10, q: "Are there dates where the price shown on my booking engine is higher than what I actually sell on OTAs?" },
-          { n: 11, q: "Is a channel gaining share because my direct price doesn't hold up against market demand?" }
+        "t": "Price and channel parity",
+        "code": "PP",
+        "why": "The price you actually sell on a portal and the one your booking engine shows in parity should match. When they don't, someone else is profiting, not you.",
+        "qs": [
+          {
+            "n": "PP-1",
+            "q": "Does my real ADR on Booking.com match the price my booking engine shows in OTA parity for the same dates?"
+          },
+          {
+            "n": "PP-2",
+            "q": "Are there dates where the price shown on my booking engine is higher than what I actually sell on OTAs?"
+          },
+          {
+            "n": "PP-3",
+            "q": "Is a channel gaining share because my direct price doesn't hold up against market demand?"
+          }
         ]
       },
       {
-        t: "Product and catalog vs demand",
-        why: "Packages, offers and room types should chase demand, not the other way around. Here you check whether your catalog really covers what the market is looking for.",
-        qs: [
-          { n: 12, q: "Do the packages in my catalog really intercept the peak periods of area demand?" },
-          { n: 13, q: "Do the offers active right now coincide with periods of weak demand? Are they working?" },
-          { n: 14, q: "Is there a demand segment — families, couples, business travellers — visible in area demand that my room catalog doesn't cover well?" }
+        "t": "Product and catalog vs demand",
+        "code": "PC",
+        "why": "Packages, offers and room types should chase demand, not the other way around. Here you check whether your catalog really covers what the market is looking for.",
+        "qs": [
+          {
+            "n": "PC-1",
+            "q": "Do the packages in my catalog really intercept the peak periods of area demand?"
+          },
+          {
+            "n": "PC-2",
+            "q": "Do the offers active right now coincide with periods of weak demand? Are they working?"
+          },
+          {
+            "n": "PC-3",
+            "q": "Is there a demand segment — families, couples, business travellers — visible in area demand that my room catalog doesn't cover well?"
+          }
         ]
       },
       {
-        t: "Markets and segments: who searches vs who books",
-        why: "Area demand is segmented by origin, party composition and device. Compared with who actually books, it shows where you are leaving a market uncovered.",
-        qs: [
-          { n: 15, q: "Which countries does area demand for my destination come from, and does it match the source markets of my real guests?", fu: ["Is there a foreign market visible in demand but almost absent from my bookings?"] },
-          { n: 16, q: "Do families with children search for my destination more than they actually book with me?" },
-          { n: 17, q: "Does the device the market searches with (mobile or desktop) match that of my direct bookers?" }
+        "t": "Markets and segments: who searches vs who books",
+        "code": "MS",
+        "why": "Area demand is segmented by origin, party composition and device. Compared with who actually books, it shows where you are leaving a market uncovered.",
+        "qs": [
+          {
+            "n": "MS-1",
+            "q": "Which countries does area demand for my destination come from, and does it match the source markets of my real guests?",
+            "fu": [
+              "Is there a foreign market visible in demand but almost absent from my bookings?"
+            ]
+          },
+          {
+            "n": "MS-2",
+            "q": "Do families with children search for my destination more than they actually book with me?"
+          },
+          {
+            "n": "MS-3",
+            "q": "Does the device the market searches with (mobile or desktop) match that of my direct bookers?"
+          }
         ]
       },
       {
-        t: "Booking window and pacing",
-        why: "Knowing how far ahead the market searches for these dates, not just how far ahead you sell, tells you when the right moment is to open prices and packages.",
-        qs: [
-          { n: 18, q: "Is my real selling lead time consistent with how far ahead the market searches for these same dates?" },
-          { n: 19, q: "Based on when the market starts searching for a period, should I open sales for a package or an offer earlier?" },
-          { n: 20, q: "For the last quarter of the year, is long-lead-time area demand already outpacing my on-the-books for the same period?" }
+        "t": "Booking window and pacing",
+        "code": "BW",
+        "why": "Knowing how far ahead the market searches for these dates, not just how far ahead you sell, tells you when the right moment is to open prices and packages.",
+        "qs": [
+          {
+            "n": "BW-1",
+            "q": "Is my real selling lead time consistent with how far ahead the market searches for these same dates?"
+          },
+          {
+            "n": "BW-2",
+            "q": "Based on when the market starts searching for a period, should I open sales for a package or an offer earlier?"
+          },
+          {
+            "n": "BW-3",
+            "q": "For the last quarter of the year, is long-lead-time area demand already outpacing my on-the-books for the same period?"
+          }
         ]
       },
       {
-        t: "Multi-property portfolio",
-        why: "If you manage more than one hotel in the same area or in different areas, here you compare who is really capturing the demand of their own destination.",
-        qs: [
-          { n: 21, q: "Which property in the group converts its own destination's area demand into real bookings best?" },
-          { n: 22, q: "At equal area demand in the same city, which hotel in the portfolio sells better, and at what ADR?" },
-          { n: 23, q: "Between two properties with similar area demand, which has the stricter minimum stay, and does it show in the sales gap?" }
+        "t": "Multi-property portfolio",
+        "code": "MP",
+        "why": "If you manage more than one hotel in the same area or in different areas, here you compare who is really capturing the demand of their own destination.",
+        "qs": [
+          {
+            "n": "MP-1",
+            "q": "Which property in the group converts its own destination's area demand into real bookings best?"
+          },
+          {
+            "n": "MP-2",
+            "q": "At equal area demand in the same city, which hotel in the portfolio sells better, and at what ADR?"
+          },
+          {
+            "n": "MP-3",
+            "q": "Between two properties with similar area demand, which has the stricter minimum stay, and does it show in the sales gap?"
+          }
+        ]
+      },
+      {
+        "t": "Do they find me? Property visibility",
+        "code": "PV",
+        "why": "Between the destination's demand and your sales there is a step that used to be invisible: how many of those searches actually reach your booking engine. If the market grows and traffic on your engine doesn't, the problem sits upstream of your rates.",
+        "qs": [
+          {
+            "n": "PV-1",
+            "q": "Compared with a year ago, have searches on my booking engine grown as much as my destination's demand?",
+            "fu": [
+              "If the destination grew and I didn't, how many percentage points behind am I?"
+            ]
+          },
+          {
+            "n": "PV-2",
+            "q": "Is my sales drop coming from fewer people finding me, or from fewer people buying once they have?"
+          },
+          {
+            "n": "PV-3",
+            "q": "Which devices and countries search for me, and does that look like who searches the destination as a whole?"
+          }
+        ]
+      },
+      {
+        "t": "Requests I turned away",
+        "code": "RT",
+        "why": "Every time a guest sets dates and guests and the engine has nothing to offer, that request is recorded. It is the only way to see demand you lost without noticing — and the breakdown tells you whether it was genuinely sold out, one of your own rules, or how the rooms are configured.",
+        "qs": [
+          {
+            "n": "RT-1",
+            "q": "How many searches on my booking engine found no solution at all last month, and what share of the total is that?",
+            "fu": [
+              "Which check-in dates do they cluster on?"
+            ]
+          },
+          {
+            "n": "RT-2",
+            "q": "Were the requests I turned away short stays on dates with a minimum stay active, or dates that were genuinely sold out?"
+          },
+          {
+            "n": "RT-3",
+            "q": "Is there a guest composition — couples, families, triples — that I turn away far more than the others while still having rooms free?"
+          }
+        ]
+      }
+    ]
+  },
+  "de": {
+    "eyebrow": "SimpleBooking · Booking Engine × Back Office",
+    "title": "29 Fragen, die Nachfrage und Verkäufe verbinden",
+    "lede": "Ein KI-Assistent, der gleichzeitig mit der Booking Engine (Gebietsnachfrage, Verfügbarkeit, Preise) und dem Back Office (Suchanfragen auf Ihrem eigenen Motor und tatsächliche Buchungen) verbunden ist, beantwortet Fragen, die keines der beiden Systeme allein lösen kann: ob der Markt da ist und Sie ihn nicht umwandeln, ob er Sie überhaupt nicht findet, oder ob Sie Anfragen abweisen, ohne es zu merken. 29 Beispiele, nach Themen geordnet.",
+    "pillCount": "29 Fragen",
+    "pillCats": "9 Kategorien",
+    "pillSource": "Booking Engine + Back Office SimpleBooking",
+    "setupLabel": "Das zuerst einfügen",
+    "setupPrompt": "Wir arbeiten an {{HOTELNAME}}, Property {{PROPERTY_ID}}. Halten Sie für alle folgenden Fragen sowohl die Booking Engine als auch das Back Office dieser Unterkunft verbunden, ohne mich erneut danach zu fragen. Die Gebietsnachfrage wird auf Ebene der Destination berechnet, nicht für die einzelne Unterkunft: Geben Sie das immer an, wenn es für die Interpretation der Antwort relevant ist. Wenn eine Frage einen Zeitraum benötigt: Fragen Sie mich, wenn er nicht klar ist und sich nicht aus dem Kontext ableiten lässt, statt zu raten; wenn ein sinnvoller Standardwert existiert, verwenden Sie ihn, aber geben Sie immer an, welchen Zeitraum Sie verwendet haben.",
+    "setupNote": "Ersetzen Sie die beiden Platzhalter durch Ihre Unterkunft — wenn Sie die Property-ID nicht kennen, können Sie sie leer lassen, der Assistent fragt danach oder sucht sie selbst. Ab hier wiederholt keine der Fragen mehr die Property.",
+    "caveatText": "<b>Bitte beachten:</b> Hier stehen zwei unterschiedliche Nachfragemaße nebeneinander. Die <i>Gebietsnachfrage</i> misst die Suchanfragen nach der Destination, nicht nach Ihrem Haus — benachbarte Hotels sehen dieselbe Zahl. Die Nachfrage <i>auf Ihrer eigenen Booking Engine</i> gehört dagegen allein Ihnen. Beide lassen sich weder addieren noch in absoluten Werten vergleichen: Verglichen werden ihre Veränderungen, und genau dieser Vergleich zeigt, ob der Markt Sie nicht erreicht oder ob er Sie erreicht und nicht kauft. Das Verhältnis von Suchanfragen zu Buchungen bleibt ein Indikator, keine Attribution: Zwischen einer einzelnen Suche und einer einzelnen Buchung besteht keine Verbindung.",
+    "indexLabel": "Kategorien",
+    "copy": "Kopieren",
+    "copied": "Kopiert",
+    "followTag": "Dann können Sie fragen",
+    "foot": "Dieser Katalog gehört zur Skill sb-demand-capture, die sb-revenue-lens (Booking Engine) und sb-reservation-insights (Back Office) orchestriert, ohne deren Logik neu zu berechnen. Es handelt sich um eine Version v1, die noch nicht an echten Daten validiert wurde: Prüfen Sie die Ergebnisse an einer realen Unterkunft, bevor Sie die Skill bei einem Kunden einsetzen. Die Antworten verwenden immer die Daten Ihrer eigenen Unterkunft — die obigen Beispiele sind nur die Fragen. Für weitere Informationen wenden Sie sich an Ihren SimpleBooking-Ansprechpartner.",
+    "version": "Version 1.1 — 11. September 2026",
+    "copyright": "© 2025-2026 SimpleBooking — Zucchetti Group. Alle Rechte vorbehalten.",
+    "cats": [
+      {
+        "t": "Nachfrage vs. tatsächliche Verkäufe",
+        "code": "DS",
+        "why": "Die Gebietsnachfrage zeigt Ihnen, wie stark der Markt nach Ihrer Destination sucht; das Back Office zeigt Ihnen, wie viel Sie tatsächlich verkaufen. Zusammen betrachtet erkennen Sie, ob das Problem beim Markt liegt oder bei Ihnen.",
+        "qs": [
+          {
+            "n": "DS-1",
+            "q": "Wächst oder sinkt die Gebietsnachfrage in diesem Monat im Vergleich zum Vormonat? Folgt mein Buchungsstand demselben Verlauf?",
+            "fu": [
+              "Wenn beide gemeinsam sinken, ist das normale Saisonalität: Wo verliere ich stattdessen Boden gegenüber dem Markt?"
+            ]
+          },
+          {
+            "n": "DS-2",
+            "q": "Wie viel Gebietsnachfrage gab es für die nächsten drei Wochen im Vergleich zu den Buchungen, die ich tatsächlich eingesammelt habe?"
+          },
+          {
+            "n": "DS-3",
+            "q": "Ist mein Umsatz in den letzten 12 Monaten der Saisonalität der Gebietsnachfrage gefolgt, oder habe ich mich gegen sie bewegt?"
+          },
+          {
+            "n": "DS-4",
+            "q": "Welche Wochen des kommenden Quartals haben die höchste Gebietsnachfrage, und wo stehe ich beim Buchungsstand für genau diese Wochen?"
+          }
+        ]
+      },
+      {
+        "t": "Warum konvertiere ich nicht",
+        "code": "NC",
+        "why": "Wenn Nachfrage da ist, die Buchungen aber ausbleiben, liegt das Problem fast immer weiter unten: eine Restriktion, eine Sperre, ein Preis. Hier prüfen Sie es Zeile für Zeile.",
+        "qs": [
+          {
+            "n": "NC-1",
+            "q": "Wenn ein Termin hohe Gebietsnachfrage hat, aber kaum echte Buchungen: Liegt es am Mindestaufenthalt, an gesperrter Verfügbarkeit oder am Preis?"
+          },
+          {
+            "n": "NC-2",
+            "q": "Welche Nächte mit hoher Nachfrage erscheinen im Verfügbarkeitskalender als \"nicht buchbar\"?",
+            "fu": [
+              "Wie viele dieser Nächte waren schon eine Woche vorher gesperrt?"
+            ]
+          },
+          {
+            "n": "NC-3",
+            "q": "Wie viele Suchanfragen riskiert mein aktueller Mindestaufenthalt abzuweisen, wenn ich ihn auf die künftige Nachfrage anwende und nicht nur auf die bereits gebuchte Vergangenheit?"
+          },
+          {
+            "n": "NC-4",
+            "q": "Zeigen die Termine, an denen ich die meisten Ein-Nacht-Aufenthalte erhalte, auch eine Gebietsnachfrage, die sich auf Kurzaufenthalte konzentriert?"
+          }
+        ]
+      },
+      {
+        "t": "Preis und Kanalparität",
+        "code": "PP",
+        "why": "Der Preis, den Sie auf einem Portal tatsächlich verkaufen, und der Preis, den Ihre Booking Engine in der OTA-Parität anzeigt, sollten übereinstimmen. Wenn das nicht der Fall ist, verdient jemand anderes daran, nicht Sie.",
+        "qs": [
+          {
+            "n": "PP-1",
+            "q": "Stimmt mein tatsächlicher ADR auf Booking.com mit dem Preis überein, den meine Booking Engine für dieselben Termine in der OTA-Parität anzeigt?"
+          },
+          {
+            "n": "PP-2",
+            "q": "Gibt es Termine, an denen der auf meiner Booking Engine angezeigte Preis höher ist als der, den ich tatsächlich über OTAs verkaufe?"
+          },
+          {
+            "n": "PP-3",
+            "q": "Gewinnt ein Kanal Anteile, weil mein Direktpreis dem Vergleich mit der Marktnachfrage nicht standhält?"
+          }
+        ]
+      },
+      {
+        "t": "Produkt und Angebotskatalog vs. Nachfrage",
+        "code": "PC",
+        "why": "Pakete, Angebote und Zimmertypen sollten der Nachfrage folgen, nicht umgekehrt. Hier prüfen Sie, ob Ihr Angebotskatalog wirklich abdeckt, wonach der Markt sucht.",
+        "qs": [
+          {
+            "n": "PC-1",
+            "q": "Treffen die Pakete in meinem Angebotskatalog tatsächlich die Spitzenzeiten der Gebietsnachfrage?"
+          },
+          {
+            "n": "PC-2",
+            "q": "Fallen die aktuell aktiven Angebote mit Phasen schwacher Nachfrage zusammen? Funktionieren sie?"
+          },
+          {
+            "n": "PC-3",
+            "q": "Gibt es ein Nachfragesegment — Familien, Paare, Geschäftsreisende —, das in der Gebietsnachfrage sichtbar ist, von meinem Zimmerangebot aber nicht gut abgedeckt wird?"
+          }
+        ]
+      },
+      {
+        "t": "Märkte und Segmente: Wer sucht vs. wer bucht",
+        "code": "MS",
+        "why": "Die Gebietsnachfrage ist nach Herkunft, Reisegruppe und Endgerät segmentiert. Im Vergleich mit denen, die tatsächlich buchen, zeigt sie, wo Sie einen Markt unbesetzt lassen.",
+        "qs": [
+          {
+            "n": "MS-1",
+            "q": "Aus welchen Ländern kommt die Gebietsnachfrage für meine Destination, und deckt sie sich mit den Herkunftsmärkten meiner tatsächlichen Gäste?",
+            "fu": [
+              "Gibt es einen Auslandsmarkt, der in der Nachfrage sichtbar ist, in meinen Buchungen aber fast nicht vorkommt?"
+            ]
+          },
+          {
+            "n": "MS-2",
+            "q": "Suchen Familien mit Kindern häufiger nach meiner Destination, als sie tatsächlich bei mir buchen?"
+          },
+          {
+            "n": "MS-3",
+            "q": "Stimmt das Endgerät, mit dem der Markt sucht (Mobil oder Desktop), mit dem meiner Direktbucher überein?"
+          }
+        ]
+      },
+      {
+        "t": "Buchungsfenster und Pacing",
+        "code": "BW",
+        "why": "Zu wissen, wie weit im Voraus der Markt nach diesen Terminen sucht — und nicht nur, wie weit im Voraus Sie verkaufen —, sagt Ihnen, wann der richtige Moment ist, Preise und Pakete zu öffnen.",
+        "qs": [
+          {
+            "n": "BW-1",
+            "q": "Passt mein tatsächlicher Buchungsvorlauf dazu, wie weit im Voraus der Markt nach genau diesen Terminen sucht?"
+          },
+          {
+            "n": "BW-2",
+            "q": "Sollte ich den Verkauf eines Pakets oder eines Angebots früher öffnen, gemessen daran, ab wann der Markt nach diesem Zeitraum zu suchen beginnt?"
+          },
+          {
+            "n": "BW-3",
+            "q": "Übertrifft die langfristig vorausgeplante Gebietsnachfrage für das letzte Quartal des Jahres bereits meinen Buchungsstand für denselben Zeitraum?"
+          }
+        ]
+      },
+      {
+        "t": "Multi-Property-Portfolio",
+        "code": "MP",
+        "why": "Wenn Sie mehrere Hotels in derselben Region oder in verschiedenen Regionen führen, vergleichen Sie hier, wer die Nachfrage seiner eigenen Destination wirklich abschöpft.",
+        "qs": [
+          {
+            "n": "MP-1",
+            "q": "Welches Haus der Gruppe wandelt die Gebietsnachfrage seiner eigenen Destination am besten in echte Buchungen um?"
+          },
+          {
+            "n": "MP-2",
+            "q": "Welches Hotel im Portfolio verkauft bei gleicher Gebietsnachfrage in derselben Stadt besser, und zu welchem ADR?"
+          },
+          {
+            "n": "MP-3",
+            "q": "Welches von zwei Häusern mit ähnlicher Gebietsnachfrage hat den strengeren Mindestaufenthalt, und zeigt sich das im Verkaufsunterschied?"
+          }
+        ]
+      },
+      {
+        "t": "Finden sie mich? Sichtbarkeit Ihres Hauses",
+        "code": "PV",
+        "why": "Zwischen der Nachfrage der Destination und Ihren Verkäufen liegt ein Schritt, der bisher unsichtbar war: wie viele dieser Suchanfragen tatsächlich auf Ihrer Booking Engine ankommen. Wenn der Markt wächst und der Traffic auf Ihrem Motor nicht, liegt das Problem vor den Tarifen.",
+        "qs": [
+          {
+            "n": "PV-1",
+            "q": "Sind die Suchanfragen auf meiner Booking Engine im Vergleich zum Vorjahr genauso stark gewachsen wie die Nachfrage meiner Destination?",
+            "fu": [
+              "Wenn die Destination gewachsen ist und ich nicht: Um wie viele Prozentpunkte bin ich zurückgeblieben?"
+            ]
+          },
+          {
+            "n": "PV-2",
+            "q": "Kommt mein Verkaufsrückgang daher, dass mich weniger Menschen finden, oder daher, dass weniger Menschen kaufen, nachdem sie mich gefunden haben?"
+          },
+          {
+            "n": "PV-3",
+            "q": "Von welchen Endgeräten und aus welchen Ländern wird nach mir gesucht, und ähnelt das denen, die nach der Destination insgesamt suchen?"
+          }
+        ]
+      },
+      {
+        "t": "Anfragen, die ich abweisen musste",
+        "code": "RT",
+        "why": "Jedes Mal, wenn ein Gast Termine und Personenzahl eingibt und die Booking Engine nichts anzubieten hat, wird diese Anfrage protokolliert. Das ist die einzige Möglichkeit, die Nachfrage zu sehen, die Sie unbemerkt verloren haben — und die Aufschlüsselung sagt Ihnen, ob wirklich ausgebucht war, ob eine Ihrer eigenen Regeln gegriffen hat oder wie die Zimmer konfiguriert sind.",
+        "qs": [
+          {
+            "n": "RT-1",
+            "q": "Wie viele Suchanfragen auf meiner Booking Engine haben im letzten Monat überhaupt keine Lösung gefunden, und welchen Anteil am Gesamtvolumen machen sie aus?",
+            "fu": [
+              "Auf welche Anreisetermine konzentrieren sie sich?"
+            ]
+          },
+          {
+            "n": "RT-2",
+            "q": "Waren die Anfragen, die ich abweisen musste, Kurzaufenthalte an Terminen mit aktivem Mindestaufenthalt, oder waren die Termine wirklich ausgebucht?"
+          },
+          {
+            "n": "RT-3",
+            "q": "Gibt es eine Gästekonstellation — Paare, Familien, Dreibettbelegungen —, die ich weit häufiger abweise als die übrigen, obwohl ich noch freie Zimmer habe?"
+          }
         ]
       }
     ]
   }
 };
 
-let lang = "en";
+let lang = "it";
 
 function el(tag, cls, text) {
   const n = document.createElement(tag);
@@ -629,12 +1138,12 @@ function render() {
   index.replaceChildren();
 
   d.cats.forEach((c, ci) => {
-    const id = "cat-" + ci;
+    const id = "cat-" + c.code.toLowerCase();
 
     const li = el("li");
     const a = el("a");
     a.href = "#" + id;
-    a.appendChild(el("span", "n", String(ci + 1)));
+    a.appendChild(el("span", "n", c.code));
     a.appendChild(el("span", null, c.t));
     li.appendChild(a);
     index.appendChild(li);
@@ -643,7 +1152,7 @@ function render() {
     sec.id = id;
 
     const head = el("div", "cat-head");
-    head.appendChild(el("div", "kicker", String(ci + 1).padStart(2, "0")));
+    head.appendChild(el("div", "kicker", c.code));
     head.appendChild(el("h2", null, c.t));
     head.appendChild(el("p", "why", c.why));
     sec.appendChild(head);
@@ -652,9 +1161,14 @@ function render() {
     c.qs.forEach(item => {
       const q = el("li", "q");
       const row = el("div", "qgrid");
+      const rowBtn = copyButton(() => item.q);
       row.appendChild(el("div", "qnum", String(item.n)));
       row.appendChild(el("div", "qtext2", item.q));
-      row.appendChild(copyButton(() => item.q));
+      row.appendChild(rowBtn);
+      row.addEventListener("click", (e) => {
+        if (e.target.closest(".copy")) return;
+        rowBtn.click();
+      });
       q.appendChild(row);
 
       if (item.fu && item.fu.length) {
@@ -663,8 +1177,13 @@ function render() {
           const w = el("div", "fu-item");
           const t = el("div", "t", f);
           t.dataset.tag = d.followTag;
+          const wBtn = copyButton(() => f);
           w.appendChild(t);
-          w.appendChild(copyButton(() => f));
+          w.appendChild(wBtn);
+          w.addEventListener("click", (e) => {
+            if (e.target.closest(".copy")) return;
+            wBtn.click();
+          });
           fu.appendChild(w);
         });
         q.appendChild(fu);

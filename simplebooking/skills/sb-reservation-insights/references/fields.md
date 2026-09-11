@@ -32,7 +32,9 @@ The second case is treacherous: that channel appears **artificially high** in an
 
 Consequence: on a heavily intermediated property overall coverage can fall below 30%, and a source-market ranking computed across all channels is really a ranking of direct bookings with some noise on top. **Filter `ChannelType = Direct`** and say so.
 
-It exists only as a **dimension**, not as a filter: you cannot isolate a single market, you read it from the bucket. And the vocabulary is **not normalised** — variants of the same country (`GB` / `UK`) can coexist as separate buckets in the same data.
+**It is filterable** (confirmed live, 2026-09-11: `keyword` `CustomerCountryCode` `equalTo` a country code returns the expected subset, and monetary measures aggregate over it normally). Earlier revisions of this file stated the opposite — that the field existed only as a dimension and a single market could not be isolated. That was true of an older connector and is no longer: read a market from the bucket when you want the ranking, filter on it when you want one market's ADR, revenue or lead time in isolation.
+
+The vocabulary is **not normalised** — variants of the same country (`GB` / `UK`) can coexist as separate buckets in the same data. This bites harder on a filter than on a dimension: `equalTo "GB"` silently misses the `UK` rows. Census the bucket values first, then filter with `in` over every variant you found.
 
 **`CustomerCountryName` no longer exists as a facet** (confirmed live, 2026-09-08: the tool rejects it in a `terms` dimension with a validation error listing the current enum). Earlier revisions of this file documented a `CustomerCountryName` / `CustomerCountryCode` pair; only the code remains. There is no resolved, human-readable country name available from this tool any more — normalise the ISO code yourself if a report needs a readable market name.
 

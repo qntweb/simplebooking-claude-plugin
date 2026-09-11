@@ -1,11 +1,12 @@
 # Orchestration — which source to call for each cross-lens
 
-Every cross-lens (X1-X7) combines **one answer from `sb-revenue-lens`** and
-**one answer from `sb-reservation-insights`** over the same period and,
-where possible, at the same granularity. Never call an MCP tool directly
-from this skill: `sb-demand-capture`'s value is in the comparison, not in
-data access. If one of the two skills isn't available in the session, stop
-and state it — don't estimate the missing side.
+Every cross-lens combines **one answer from `sb-revenue-lens`** and **one
+answer from `sb-reservation-insights`** over the same period and, where
+possible, at the same granularity — plus, for the lenses that use it, **this
+skill's own reading of first-party demand** (see "The third source" below).
+`sb-demand-capture`'s value is in the comparison, not in data access: never
+recompute what one of the two skills already owns. If one of them isn't
+available in the session, stop and state it — don't estimate the missing side.
 
 ## Two behavioral facts to read before anything else
 
@@ -64,3 +65,55 @@ window.
   reading the X5 comparison, check the coverage as you would in
   `sb-reservation-insights` — below `config/defaults.yaml:min_field_coverage`,
   the lens abstains and states so instead of producing a fragile share.
+
+---
+
+## The third source — first-party demand, owned here
+
+`run_property_demand_aggregation` (Simple Booking Back Office) is the one
+source this skill calls **directly**. It has no other owner: no existing skill
+reads the searches performed on the property's own booking engine, so there is
+no logic to inherit and nothing to keep in sync. That is the whole reason the
+orchestration rule above admits an exception here — the rule exists to prevent
+holding a second copy of somebody else's formula, not to forbid owning data
+nobody owns.
+
+**No new dependency.** It sits on the same MCP server as
+`sb-reservation-insights`, which this skill already invokes. A session that can
+run the sales side can run this.
+
+**It is optional.** Probe once; if the tool is unavailable or the call fails on
+authorization, every lens falls back to its two-point form and the answer says
+the decomposition wasn't available. Never block a lens on it, never estimate it.
+
+Grammar, guardrails, history floor and reference queries:
+`references/property-demand.md`. **Read that file before writing any call** —
+in particular the four mechanical guardrails, which are not intuitive and
+produce plausible-looking wrong numbers when ignored.
+
+| Lens | First-party query | Purpose |
+|---|---|---|
+| **X1b** | searches over the stay window, this year and the same window a year ago (`SearchDate` basis, both windows shifted 364 days) | splits the X1 gap into visibility and conversion |
+| **X5** | `CustomerCountryCode` / `DeviceType` / `Nights` terms dimension over the window | the middle term of the market and segment mix |
+| **X6** | `DaysInAdvance` as an `Average` measure, same window, two years, concluded periods only | replaces the area lead time with my own searchers' — closer populations |
+| **X8** | same as X1b | it *is* the first leg, read on its own |
+| **X9** | query 8.1 (denied demand by check-in month, LOS and persons) plus the same window unfiltered for the denominator | the denied share and its breakdown |
+| **X2** | optionally query 8.2 (pressure per night) on the nights L3 flagged | corroborates a restriction brake from the guest's side |
+
+**Window basis.** First-party searches are keyed on `SearchDate` — the event
+time, the direct analogue of `RegistrationDate` on the sales side, not of
+`CheckInDate`. When a lens compares against stay dates, filter `CheckInDate`
+(additive) and never `StayDate`. The full field mapping across the three
+sources is in `references/property-demand.md` §7, which is the single place to
+update when the front-office names are aligned.
+
+**Name trap.** `property_destination_demands_run_report` is the IBE tool
+`sb-revenue-lens` uses. `destination_demands_run_report` — almost the same
+name — is the Zucchetti Data Lake tool and is not available to customers.
+Never reach for it from here.
+
+**History floor.** No first-party series and no first-party comparison crosses
+**2025-01-01** (`config/defaults.yaml:property_demand.history_floor`). Earlier
+searches are polluted by scrapers. If a requested window starts before it, the
+first-party side is not produced and the lens says so — the area and sales
+sides are unaffected and continue normally.

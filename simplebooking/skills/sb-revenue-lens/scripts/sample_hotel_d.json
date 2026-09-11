@@ -13,6 +13,20 @@
       "color_rule": [[20000,"#1b4f7a"],[12000,"#13a89e"]]
     },
     "caption": "Searches in the area (12 km) per check-in week. Demand drops from ~27,000 (mid-June) to ~6,800 (late July). Most requested stays: <b>2 nights</b> (37,903) and <b>3 nights</b> (32,908). Average lead time growing: 36 → 91 days. <i>Destination data, not the hotel's own.</i>"
+  ,
+    "property": {
+      "labels": ["21 Jun","22 Jun","23 Jun","24 Jun","25 Jun","26 Jun","27 Jun","28 Jun"],
+      "values": [64,58,71,66,49,41,38,44],
+      "label": "Your searches / night",
+      "color_rule": [[60,"#1b4f7a"],[40,"#13a89e"]],
+      "solutions": {
+        "labels": ["21 Jun","22 Jun","23 Jun","24 Jun","25 Jun","26 Jun","27 Jun","28 Jun"],
+        "values": [1.8,1.4,0.1,0.0,1.1,2.3,2.6,2.2],
+        "label": "Avg solutions found",
+        "color_rule": [[1.0,"#13a89e"],[0.0,"#c0392b"]]
+      },
+      "caption": "Tier 2 — searches on this property's own booking engine, per night. Jun 23 draws real search volume and returns almost nothing: an unserved night, which is the orphan-night mechanism observed rather than deduced. Not comparable in level with the destination chart above — different populations, shown separately on purpose."
+    }
   },
   "lenses": [
     {
