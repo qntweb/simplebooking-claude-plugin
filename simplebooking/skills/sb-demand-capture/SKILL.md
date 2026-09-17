@@ -238,6 +238,6 @@ what an answer is allowed to say.
 | `config/defaults.yaml` | default window, gap classification thresholds, first-party demand settings and history floor |
 | `references/orchestration.md` | exactly which call to make to each source, for each lens; time-window alignment; the third source and why it's read directly |
 | `references/cross-lenses.md` | formal spec of the 9 cross-lenses: input, comparison, classification |
-| `references/property-demand.md` | first-party demand: grammar, the four mechanical guardrails, the history floor, the three-source field map, reference queries |
+| `references/property-demand.md` | first-party demand: grammar, mechanical guardrails (two current, two fixed 2026-09-17), the history floor, the three-source field map, reference queries |
 | `scripts/verify.py` | recomputes the comparison arithmetic (delta, decomposition, denied share, share, intersection) before a number goes into an answer |
-| `templates/sb-demand-capture-example-questions.html` | catalog of 29 example questions in 9 categories (IT/EN), for presenting the skill to a customer |
+| `templates/sb-demand-capture-example-questions.html` | catalog of 30 example questions in 9 categories (IT/EN/DE), for presenting the skill to a customer |

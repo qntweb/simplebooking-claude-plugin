@@ -59,7 +59,7 @@ top-level: there is no nested scope, so no equivalent of the `RoomsRatePlanNeste
 | Family | Facets |
 |---|---|
 | Filters — keyword | `CustomerCountryCode`, `DeviceType`, `PropertyId`, `Source` |
-| Filters — numeric | `DaysInAdvance`, `Nights`, `NumberOfPersons`, `NumberOfRooms`, `NumberOfSolutions`, `RoomNights` |
+| Filters — numeric | `DaysInAdvance`, `Nights`, `NumberOfAdults`, `NumberOfKids`, `NumberOfPersons`, `NumberOfRooms`, `NumberOfSolutions`, `RoomNights` |
 | Filters — date | `SearchDate`, `CheckInDate`, `CheckOutDate`, `StayDate` |
 | Dimensions — terms | `CustomerCountryCode`, `DeviceType`, `HasSolutions`, `Nights`, `NumberOfAdults`, `NumberOfKids`, `NumberOfPersons`, `NumberOfRooms`, `NumberOfSolutions`, `Property`, `Source` |
 | Dimensions — calendar | `SearchDate` (accepts `Hour` and `timeZone`), `CheckInDate`, `CheckOutDate`, `StayDate` (whole-day, **no** `timeZone`) |
@@ -68,8 +68,9 @@ top-level: there is no nested scope, so no equivalent of the `RoomsRatePlanNeste
 
 `Property` buckets resolve to `Name (ID)`.
 
-**`NumberOfAdults` and `NumberOfKids` are not filterable** — they are dimensions and
-measures only. Family demand is read from a bucket, never isolated with a filter.
+**`NumberOfAdults` and `NumberOfKids` are filterable (fixed 2026-09-17)** — previously
+dimensions and measures only. Family demand can now be isolated with a filter instead of
+read from a bucket — see §8.4.
 
 > **Enum fallback.** This connector's published schema has lagged behind its validator.
 > Don't probe it preemptively — but **if a call is rejected on a `facet`, the validation
@@ -78,27 +79,33 @@ measures only. Family demand is read from a bucket, never isolated with a filter
 
 ---
 
-## 3. Four mechanical guardrails
+## 3. Mechanical guardrails — two remain, two were fixed 2026-09-17
 
-**`StayDate` buckets are not additive.** The facet spreads a search across every night of
-its stay, so a search spanning two months is counted in both buckets. Their sum exceeds
-the matched-search total. Never render them as shares; never let a percentage be computed
-over them. When you need additive buckets — one search in exactly one bucket — use
-`CheckInDate`.
+Four were documented; two turned out to be permanent properties of the tool, two turned
+out to be bugs that got fixed. A team's "won't fix" is not a permanent guarantee — treat
+it as current status, not as a property to build guardrails around forever.
 
-**The `StayDate` dimension ignores the `StayDate` filter.** The filter selects the
-*search*; the dimension then expands *all* of that search's nights, including nights
-outside the filtered range. This is expected behaviour and will not be fixed: intersecting
-them would require scripted date-histogram aggregations, which this Elasticsearch version
-does not support. **Read only the buckets inside the filtered window.** Anything outside
-it is the tail of long stays, not demand for the period.
+**Still true — `StayDate` buckets are not additive.** The facet spreads a search across
+every night of its stay, so a search spanning two months is counted in both buckets. Their
+sum exceeds the matched-search total. Never render them as shares; never let a percentage
+be computed over them. When you need additive buckets — one search in exactly one bucket —
+use `CheckInDate`.
 
-**`size` is ignored on `calendar` dimensions**, on this tool and on
-`run_reservation_aggregation` alike — date histograms in Elasticsearch 6.4.2 do not
-support it — and zero-count buckets are emitted too. There is no way to cap the response
-downstream, so **size the window upstream**. Never use `Hour` over more than a few days.
+**Still true — one `distinctCountOf` per request.** Sessions and visitors cost two calls.
+The team has made the limit configurable and announced a raise to 3, not yet live as of
+2026-09-17 — verify with a two-metric request before assuming it changed.
 
-**One `distinctCountOf` per request.** Sessions and visitors cost two calls.
+**Fixed — the `StayDate` dimension no longer ignores the `StayDate` filter.** Until
+2026-09-17 the filter selected the *search* while the dimension expanded *all* of that
+search's nights, including ones outside the filtered range — declared by the team as
+expected and not fixable. It was fixed. Buckets today stay inside the filtered window; the
+old advice to discard out-of-window rows is no longer needed for that reason (the
+non-additivity above still applies independently).
+
+**Fixed — `size` is now respected on `calendar` dimensions**, on this tool and on
+`run_reservation_aggregation` alike. A calendar `Hour` grouping over a long window no
+longer returns an unbounded number of rows; sizing the window upstream is no longer the
+only defense, though it remains good practice.
 
 ---
 
@@ -223,13 +230,30 @@ Label the room-nights **requested and not served**, never "lost": there is no de
                    { "name": "avg_solutions", "measure": "NumberOfSolutions", "statistic": "Average" } ] } ] } }
 ```
 
-**Read only the nights inside `<STAY_FROM>`..`<STAY_TO>`** (§3). A night with meaningful
-search volume and an average solutions count near zero is a night the guest asked for and
-could not have — measured from the guest's side rather than inferred from the availability
-calendar.
+Buckets now stay inside `<STAY_FROM>`..`<STAY_TO>` on their own (§3) — no out-of-window
+rows to discard. They can still overlap each other for stays spanning several nights in
+the window (§3's non-additivity), so read the profile, not a share. A night with
+meaningful search volume and an average solutions count near zero is a night the guest
+asked for and could not have — measured from the guest's side rather than inferred from
+the availability calendar.
 
 ### 8.3 Own funnel mix
 
 Root metrics plus one terms dimension: `CustomerCountryCode` for markets, `DeviceType` for
 device, `Nights` for the LOS mix, `DaysInAdvance` as an average for lead time. All cheap,
 all additive, all comparable against the equivalent reservation-side figure through §7.
+
+### 8.4 Family demand (unlocked 2026-09-17)
+
+```json
+{ "request": {
+  "propertyIds": [ "<PROPERTY_ID>" ],
+  "filters": { "date":    [ { "facet": "SearchDate", "between": { "from": "<FROM>", "to": "<TO>" }, "timeZone": "<TZ>" } ],
+               "numeric": [ { "facet": "NumberOfKids", "greaterOrEqualThan": 1 } ] },
+  "metrics": [ { "name": "family_searches", "searchesCount": true } ] } }
+```
+
+Add `{ "facet": "NumberOfSolutions", "equalTo": 0 }` to `numeric` to isolate **denied**
+family demand — combine with §8.1's structure for a family-only breakdown by check-in
+month. Feeds L3c of `sb-revenue-lens` (occupancy mismatch) with a direct filter instead of
+a bucket inference.

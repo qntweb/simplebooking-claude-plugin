@@ -238,14 +238,15 @@ answer is allowed to say.
   never subtract one from the other, never rank a night using a tercile
   computed across both. Where a lens compares them, it compares **rates of
   change**, never levels.
-- **`StayDate` bleeds and doesn't add up.** Its buckets spread one search over
-  every night of its stay, so they sum to more than the search total — never
-  render them as shares — and the dimension ignores its own filter, so read
-  **only the buckets inside the filtered window**. This is expected behaviour
-  and will not be fixed.
-- **`size` is ignored on calendar dimensions** and zero-count buckets are
-  emitted. There is no way to cap the response downstream: size the window
-  upstream, and never use `Hour` over more than a few days.
+- **`StayDate` doesn't add up.** Its buckets spread one search over every night
+  of its stay, so they sum to more than the search total — never render them
+  as shares. Still true today.
+- **`StayDate`'s dimension used to ignore its own filter, and `size` used to be
+  ignored on calendar dimensions** — both fixed by the team 2026-09-17,
+  verified live. Buckets now stay inside the filtered window and `size` is
+  now respected on both Back Office aggregation tools. Sizing the window
+  upstream is no longer the only defense against a long `Hour` grouping, but
+  it remains good practice.
 - **Nothing crosses 2025-01-01.** Earlier searches are polluted by scrapers —
   a different population, not a stronger year. It rarely bites a
   forward-looking run, but it binds the moment a baseline or a "vs last year"

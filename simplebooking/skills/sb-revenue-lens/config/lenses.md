@@ -52,17 +52,21 @@ of searches and swings wildly.
 `pressure_n` = tercile of `searches_n` **within the property's own series for
 the period**. Never mixed with the area series — see the robustness note below.
 
-**Three mechanical guardrails, all of them load-bearing:**
+**Mechanical guardrails — one load-bearing, two fixed by the team 2026-09-17
+(verified live; see `references/property-demand.md`):**
 
-1. Read **only the buckets inside the filtered stay window**. The `StayDate`
-   dimension ignores its own filter and returns the whole stay of every matched
-   search; the tails outside the window are long stays, not demand for the
-   period.
-2. `StayDate` buckets are **not additive** — one search lands in every night it
+1. `StayDate` buckets are **not additive** — one search lands in every night it
    covers, so they sum to more than the search total. Never render them as
-   shares or percentages.
-3. `size` is ignored on calendar dimensions and zero-count buckets are emitted.
-   Size the window upstream; never `Hour` beyond a few days.
+   shares or percentages. Still true, still load-bearing.
+2. ~~Read only the buckets inside the filtered stay window~~ — no longer
+   needed. Until 2026-09-17 the `StayDate` dimension ignored its own filter
+   and returned the whole stay of every matched search, so tails outside the
+   window had to be discarded by hand. Fixed: the tool now returns only
+   buckets inside the filtered window.
+3. ~~Size the window upstream~~ — no longer the only defense. `size` used to
+   be ignored on calendar dimensions, emitting zero-count buckets regardless.
+   Fixed: `size` is now respected. Sizing the window upstream remains good
+   practice, not a requirement.
 
 ---
 

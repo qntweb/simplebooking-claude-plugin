@@ -117,6 +117,8 @@ filter facet** — filter on the numeric `ConvertoQuoteId` instead (`hasValue: t
 
 **Always set `size` explicitly** — the default truncates silently. Use at least 40 for a month of days, 100 or more for a vocabulary census.
 
+**On `calendar`, this used to be advice, not a requirement — as of 2026-09-17 it's a requirement again.** Until then, `size` was ignored on `calendar` dimensions on this tool (and on `run_property_demand_aggregation`): every bucket came back regardless of what `size` said, zero-count ones included — over-inclusive, not silently truncated, so a low `size` on a calendar grouping was harmless here even though it would have truncated a `terms` grouping. Verified live 2026-09-17: `size` is now respected on calendar dimensions too, on both tools. A `size` too low on a calendar grouping now truncates exactly like it always did on `terms` — the "at least 40 for a month of days" guidance above is no longer just good hygiene, it is load-bearing.
+
 ### Bucket rows carry resolved names, not just IDs
 
 Confirmed live (2026-08-26) on `Offer`, `RatePlan`, `Package` and `Service`: a bucket key comes

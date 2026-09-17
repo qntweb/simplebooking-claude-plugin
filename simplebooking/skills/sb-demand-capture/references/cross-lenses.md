@@ -17,9 +17,10 @@ about size, never about mechanism.
 
 `run_property_demand_aggregation` supplies the middle term: the searches
 performed on this property's own booking engine. See
-`references/property-demand.md` for its grammar, its four mechanical
-guardrails and the history floor — **read that file before writing any lens
-that uses it.**
+`references/property-demand.md` for its grammar, its mechanical guardrails
+(two remain, two were fixed 2026-09-17 — check which before assuming either)
+and the history floor — **read that file before writing any lens that uses
+it.**
 
 ```
 area demand  →  my shop window  →  sales
@@ -319,7 +320,8 @@ sold-out in every other view.
 - **Guardrails:** label the room-nights **requested and not served**, never
   "lost" — there is no dedup key, so repeated searches by one guest inflate the
   figure, and the phrasing must not imply recoverable revenue. Use
-  `CheckInDate` for the breakdown, never `StayDate` (non-additive buckets, and
-  the dimension ignores its own filter — §3). The denied *rate* is internal to
-  the property's own funnel and needs **no** area control; only a statement
-  about denied *volume* moving would.
+  `CheckInDate` for the breakdown, never `StayDate` — the buckets stay
+  non-additive regardless (§3), even though the dimension no longer ignores
+  its own filter (fixed 2026-09-17). The denied *rate* is internal to the
+  property's own funnel and needs **no** area control; only a statement about
+  denied *volume* moving would.

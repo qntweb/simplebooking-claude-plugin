@@ -1,8 +1,9 @@
 # Tier 2 — first-party demand (`run_property_demand_aggregation`)
 
 **Optional.** Every lens in this skill is fully defined without it. Read this file
-before writing a call: three of the guardrails below are counter-intuitive and produce
-numbers that look right and are wrong.
+before writing a call: the guardrails below are counter-intuitive and produce numbers
+that look right and are wrong. Two were fixed by the team on 2026-09-17 (verified live) —
+this file reflects the current state, not the 2026-09-11 baseline.
 
 ## What it is, and what it is not
 
@@ -58,37 +59,39 @@ nested scope.
 | Dimensions — calendar | `StayDate` (per-night), `CheckInDate` (additive) |
 | Measures | `NumberOfSolutions`, `RoomNights`, `DaysInAdvance`, `Nights` |
 
-`NumberOfAdults` and `NumberOfKids` are **not filterable** — dimensions and measures only.
+`NumberOfAdults` and `NumberOfKids` are **filterable** (fixed 2026-09-17; previously
+dimensions and measures only) — see L3c below for what that unlocks.
 
 > **Enum fallback.** This connector's published schema has lagged behind its validator.
 > Don't probe it preemptively, but **if a call is rejected on a `facet`, the validation
 > message lists the real enum**: read it and retry. That is the correct recovery and it
 > keeps the skill working across connector changes.
 
-## The four guardrails
+## The four guardrails — two current, two fixed 2026-09-17
 
-**1. `StayDate` buckets are not additive.** The facet spreads one search across every
-night of its stay, so a search covering two months lands in both buckets and the column
-sums to more than the search total. Never render them as shares or percentages. When you
-need one search in exactly one bucket — the denied-demand breakdown, for instance — use
-`CheckInDate`.
+**1. `StayDate` buckets are not additive — still true.** The facet spreads one search
+across every night of its stay, so a search covering two months lands in both buckets and
+the column sums to more than the search total. Never render them as shares or
+percentages. When you need one search in exactly one bucket — the denied-demand
+breakdown, for instance — use `CheckInDate`.
 
-**2. The `StayDate` dimension ignores the `StayDate` filter.** The filter picks the
-*search*; the dimension then expands *all* of that search's nights, well outside the
-filtered range. Expected behaviour, and it will not be fixed: intersecting them would
-need scripted date-histogram aggregations this Elasticsearch version doesn't support.
-**Read only the buckets inside the filtered window.** The tails are long stays, not
-demand for your period.
+**2. The `StayDate` dimension used to ignore the `StayDate` filter — fixed.** Until
+2026-09-17 the filter picked the *search* while the dimension expanded *all* of that
+search's nights, well outside the filtered range — declared by the team as expected and
+permanent. It was fixed and verified live: the same query today returns buckets only
+inside the filtered window. Guardrail 1 above still applies independently — buckets
+inside the window can still overlap for stays spanning several of its nights.
 
-**3. `size` is ignored on `calendar` dimensions** — date histograms in Elasticsearch
-6.4.2 don't support it — and zero-count buckets are emitted anyway. Nothing caps the
-response downstream, so **size the window upstream**. Never `Hour` over more than a few
-days.
+**3. `size` used to be ignored on `calendar` dimensions — fixed.** Date histograms in
+Elasticsearch 6.4.2 didn't support it, so zero-count buckets were emitted regardless of
+`size`. Verified fixed on both this tool and `run_reservation_aggregation`: `size` is now
+respected. Sizing the window upstream is no longer the only defense against a runaway
+`Hour` grouping, though it remains good practice.
 
-**4. Nothing crosses 2025-01-01.** Bot and scraping protection rolled out gradually
-through 2024 and the series falls by roughly a factor of three across it — a ramp, not a
-step, so there is no clean earlier anchor. Earlier searches are a different population,
-not a stronger year. (`config/defaults.yaml:property_demand.history_floor`.)
+**4. Nothing crosses 2025-01-01 — unaffected.** Bot and scraping protection rolled out
+gradually through 2024 and the series falls by roughly a factor of three across it — a
+ramp, not a step, so there is no clean earlier anchor. Earlier searches are a different
+population, not a stronger year. (`config/defaults.yaml:property_demand.history_floor`.)
 
 ## The two queries
 
@@ -105,7 +108,9 @@ not a stronger year. (`config/defaults.yaml:property_demand.history_floor`.)
                    { "name": "avg_solutions", "measure": "NumberOfSolutions", "statistic": "Average" } ] } ] } }
 ```
 
-Read only `<PERIOD_FROM>`..`<PERIOD_TO>` (guardrail 2). A night with `searches ≥
+Buckets stay inside `<PERIOD_FROM>`..`<PERIOD_TO>` on their own now (guardrail 2, fixed).
+Guardrail 1's non-additivity still applies — a stay spanning several nights in the window
+is counted once per night, so read a profile, not a share. A night with `searches ≥
 min_searches_night` and `avg_solutions ≤ unserved_solutions_max` is an **unserved
 night** — the orphan-night mechanism observed from the guest's side rather than inferred
 from the calendar.
@@ -133,6 +138,25 @@ is the readable figure; the raw count moves with traffic.
 **Label the room-nights "requested and not served", never "lost".** There is no dedup
 key, so several searches by one guest inflate the figure, and "lost" reads to a hotelier
 as revenue a rule change would hand back.
+
+### Occupancy mismatch, isolated directly — feeds L3c (fix 2026-09-17)
+
+```json
+{ "request": {
+  "propertyIds": [ "<PROPERTY_ID>" ],
+  "filters": { "date":    [ { "facet": "SearchDate", "greaterOrEqualThan": "<SEARCH_FROM>" },
+                            { "facet": "CheckInDate", "between": { "from": "<PERIOD_FROM>", "to": "<PERIOD_TO>" } } ],
+               "numeric": [ { "facet": "NumberOfSolutions", "equalTo": 0 },
+                            { "facet": "NumberOfKids", "greaterOrEqualThan": 1 } ] },
+  "metrics": [ { "name": "denied_family", "searchesCount": true } ] } }
+```
+
+Before the fix, L3c inferred a family/occupancy mismatch from the `NumberOfPersons` and
+`NumberOfKids` buckets of the plain denied-demand query. Now `NumberOfKids` filters
+directly: this isolates denied family demand from denied demand generally, without
+reading it out of a bucket. Use it to confirm a mismatch already suggested by
+`denied_pax`, not as the sole trigger — the bucket-level read remains valid and this adds
+precision, it does not replace the query above.
 
 ## What this tier cannot do
 

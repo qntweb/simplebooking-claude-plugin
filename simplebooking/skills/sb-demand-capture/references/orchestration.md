@@ -88,8 +88,9 @@ the decomposition wasn't available. Never block a lens on it, never estimate it.
 
 Grammar, guardrails, history floor and reference queries:
 `references/property-demand.md`. **Read that file before writing any call** —
-in particular the four mechanical guardrails, which are not intuitive and
-produce plausible-looking wrong numbers when ignored.
+in particular its mechanical guardrails (two still apply; two were fixed
+2026-09-17 — check the file's current state, not memory), which are not
+intuitive and produce plausible-looking wrong numbers when ignored.
 
 | Lens | First-party query | Purpose |
 |---|---|---|

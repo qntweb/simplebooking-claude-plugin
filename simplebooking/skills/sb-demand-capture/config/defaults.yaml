@@ -113,9 +113,10 @@ min_field_coverage: 0.25
 # skill reads directly: it has no other owner, so there is no logic to
 # inherit and nothing to keep in sync (see references/orchestration.md).
 #
-# Grammar, the four mechanical guardrails and the reference queries live in
-# references/property-demand.md. Read it before writing a call: the guardrails
-# are not intuitive and produce plausible-looking wrong numbers when ignored.
+# Grammar, the mechanical guardrails (two still apply, two were fixed
+# 2026-09-17) and the reference queries live in references/property-demand.md.
+# Read it before writing a call: the guardrails are not intuitive and produce
+# plausible-looking wrong numbers when ignored.
 property_demand:
 
   # `auto` = probe once per session; on a missing tool or an authorization
