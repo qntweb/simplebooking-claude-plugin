@@ -12,7 +12,7 @@ description: >
   contenuti hotel, auditare i contenuti.
 ---
 
-# 🏨 Hotel Content Audit — Skill for Claude Cowork
+# 🏨 Hotel Content Audit — SimpleBooking content and translation audit
 
 ## Overview
 

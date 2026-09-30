@@ -1,0 +1,14 @@
+# ChatGPT / Codex presentation of this skill (Agent Plugins, OpenAI extension).
+# Ignored by Claude. Shipped to the client plugins by scripts/build-client-plugin.py.
+interface:
+  display_name: "Hotel content audit"
+  short_description: "Missing translations and incomplete content across all enabled languages"
+  default_prompt: "Audit the content and translations of my hotel on SimpleBooking."
+  brand_color: "#F2C812"
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "simplebooking-ibe"
+      description: "Hotel content, rooms, rates, offers and services"
+      transport: "streamable_http"
+      url: "https://mcp.ibe.simplebooking.it"

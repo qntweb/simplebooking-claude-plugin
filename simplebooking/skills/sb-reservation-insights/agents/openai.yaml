@@ -1,0 +1,19 @@
+# ChatGPT / Codex presentation of this skill (Agent Plugins, OpenAI extension).
+# Ignored by Claude. Shipped to the client plugins by scripts/build-client-plugin.py.
+interface:
+  display_name: "Reservation insights"
+  short_description: "Pick-up, pace, channel mix, cancellations and markets from the Back Office"
+  default_prompt: "How is next month going compared to last year, and which channels are driving it?"
+  brand_color: "#F2C812"
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "simplebooking-backoffice"
+      description: "Reservations of the property (run_reservation_aggregation)"
+      transport: "streamable_http"
+      url: "https://mcp.backoffice.simplebooking.it"
+    - type: "mcp"
+      value: "simplebooking-ibe"
+      description: "Resolves a property name to its ID (booking_engine_search_properties)"
+      transport: "streamable_http"
+      url: "https://mcp.ibe.simplebooking.it"

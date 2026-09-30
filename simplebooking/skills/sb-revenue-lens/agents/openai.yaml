@@ -1,0 +1,16 @@
+# ChatGPT / Codex presentation of this skill (Agent Plugins, OpenAI extension).
+# Ignored by Claude. Shipped to the client plugins by scripts/build-client-plugin.py.
+# Only the IBE server is declared: the Back Office one is optional (Tier 2) and no
+# lens requires it.
+interface:
+  display_name: "Revenue lens"
+  short_description: "Area demand, availability, MinLOS restrictions and direct vs OTA parity"
+  default_prompt: "Where am I losing money in the next 60 days?"
+  brand_color: "#F2C812"
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "simplebooking-ibe"
+      description: "Area demand, availability, restrictions and prices"
+      transport: "streamable_http"
+      url: "https://mcp.ibe.simplebooking.it"

@@ -1,0 +1,19 @@
+# ChatGPT / Codex presentation of this skill (Agent Plugins, OpenAI extension).
+# Ignored by Claude. Shipped to the client plugins by scripts/build-client-plugin.py.
+interface:
+  display_name: "Demand capture"
+  short_description: "Is the property capturing its destination's demand, and where does it lose it"
+  default_prompt: "Am I keeping up with the demand of my destination this autumn?"
+  brand_color: "#F2C812"
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "simplebooking-ibe"
+      description: "Area demand, availability, restrictions and prices"
+      transport: "streamable_http"
+      url: "https://mcp.ibe.simplebooking.it"
+    - type: "mcp"
+      value: "simplebooking-backoffice"
+      description: "Reservations and first-party booking engine searches"
+      transport: "streamable_http"
+      url: "https://mcp.backoffice.simplebooking.it"
