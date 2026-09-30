@@ -28,3 +28,7 @@ When a new version is released, open **Customize → Plugins → Yours** and pre
   across the SimpleBooking platform.
 - **sb-demand-capture** — cross-checks area demand against actual reservations
   to tell whether a property is capturing the demand of its own destination.
+
+## License
+
+[PolyForm Shield 1.0.0](LICENSE) — © 2025-2026 QNT S.r.l. — Zucchetti Group.

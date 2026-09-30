@@ -4,7 +4,18 @@
   "version": "0.6.2",
   "description": "SimpleBooking data analysis skills (reservations, revenue, content, demand) for hotel customers, built on the IBE and BackOffice MCP connectors.",
   "author": {
-    "name": "Simple Booking - QNT / Zucchetti Group"
+    "name": "Simple Booking - QNT / Zucchetti Group",
+    "url": "https://www.simplebooking.travel"
   },
-  "homepage": "https://github.com/qntweb/simplebooking-claude-plugin"
+  "homepage": "https://github.com/qntweb/simplebooking-claude-plugin",
+  "repository": "https://github.com/qntweb/simplebooking-claude-plugin",
+  "license": "LicenseRef-PolyForm-Shield-1.0.0",
+  "keywords": [
+    "hotel",
+    "reservations",
+    "revenue management",
+    "booking engine",
+    "simplebooking",
+    "hospitality"
+  ]
 }
