@@ -1,0 +1,4 @@
+.DS_Store
+
+# Internal working notes, kept locally only
+.claude/commit-rules.md
