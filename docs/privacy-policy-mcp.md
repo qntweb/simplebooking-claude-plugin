@@ -4,7 +4,8 @@
 
 This policy explains how QNT S.r.l. handles data when you use the SimpleBooking MCP
 connectors — **SimpleBooking IBE** (`mcp.ibe.simplebooking.it`) and **SimpleBooking
-BackOffice** (`mcp.backoffice.simplebooking.it`) — from an AI assistant such as Claude.
+BackOffice** (`mcp.backoffice.simplebooking.it`) — from an AI assistant such as Claude
+or ChatGPT.
 
 ## 1. Who we are
 
@@ -66,10 +67,11 @@ SimpleBooking under its agreement with QNT.
 
 ## 6. The AI assistant you use
 
-When you use a connector, its answers are delivered to the AI assistant you connected
-it to (for example Claude by Anthropic) and become part of your conversation there. That
-provider processes the conversation under its own terms and privacy policy, which QNT
-does not control. You choose which assistant to connect and which questions to ask.
+When you use a connector, its answers are delivered to the AI assistant you connected it
+to (for example Claude by Anthropic or ChatGPT by OpenAI) and become part of your
+conversation there. That provider processes the conversation under its own terms and
+privacy policy, which QNT does not control. You choose which assistant to connect and
+which questions to ask.
 
 ## 7. Your rights
 
