@@ -27,16 +27,15 @@ NEXT_STEP_WARNING_THRESHOLD: 5    # ⚠️ on languages != master
 NEXT_STEP_LANGUAGES_THRESHOLD: 2  # languages with completeness < 50%
 OPPORTUNITY_MIN_SHARE: 5          # minimum traffic/demand %
 
-# GA4 + DATA LAKE
+# GA4 (optional) + AREA DEMAND (IBE)
 GA4_PROPERTY_ID: null             # "properties/123456789" | null (auto)
 GA4_LOOKBACK_DAYS: 90
-DATALAKE_RADIUS_KM: 5
-DATALAKE_SEARCH_LOOKBACK: 90
-DATALAKE_STAY_LOOKAHEAD: 90
+DEMAND_RADIUS_KM: 5
+DEMAND_SEARCH_LOOKBACK: 90
+DEMAND_STAY_LOOKAHEAD: 90
 
 # MCP OVERRIDE (normally auto-detect)
 FORCE_GA4_AVAILABLE: null         # true|false | null (auto)
-FORCE_DATALAKE_AVAILABLE: null    # true|false | null (auto)
 
 # API VOLUME CONTROL
 MAX_API_CALLS_PER_BLOCK: 10      # Reduce to 6 for Haiku

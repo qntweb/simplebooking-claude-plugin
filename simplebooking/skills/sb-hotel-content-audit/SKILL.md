@@ -29,7 +29,7 @@ Before starting, read these files in the order listed:
 3. **config/rules.md** — Mechanical classification rules (Rules 1→6)
 4. **templates/report-full.md** — Report template for Sonnet/Opus
 5. **templates/report-haiku.md** — Simplified report template for Haiku
-6. **config/analytics.md** — Step 9 instructions (GA4 + Data Lake)
+6. **config/analytics.md** — Step 9 instructions (area demand + GA4)
 
 ## Which template to use
 
@@ -42,11 +42,11 @@ If in doubt, ask the user: "Would you prefer a quick, concise audit
 
 ## Required MCP tools
 
-- **SimpleBooking MCP** — REQUIRED. The workflow cannot start without it.
+- **SimpleBooking IBE MCP** — REQUIRED. The workflow cannot start without it.
+  It also provides the area demand used in Step 9.
 - **Google Analytics MCP** — Optional, auto-detected in Step 8.5
-- **Zucchetti Travel Data Lake MCP** — Optional, auto-detected in Step 8.5
 
-Do NOT ask the user whether they have the tools. Check silently (Step 8.5).
+Do NOT ask the user whether they have GA4. Check silently (Step 8.5).
 
 ## Workflow — Step by Step
 
@@ -100,13 +100,13 @@ Show progress: "✅ [Section] completed ([N]/[TOTAL])"
 Use the appropriate template (full or haiku) from `templates/`.
 Fill in every placeholder with the audit results.
 
-### STEP 8.5 — MCP Probe (silent)
+### STEP 8.5 — GA4 Probe (silent)
 INVISIBLE to the user. Read `config/analytics.md` for details.
-Try `get_account_summaries()` and `destination_get_report_options()`.
-If they fail → skip Step 9. NEVER mention missing tools.
+Try `get_account_summaries()`. If it fails → Step 9 uses area demand only.
+NEVER mention missing tools.
 
 ### STEP 9 — Smart next step
-Only if at least 1 optional tool is available.
+Area demand (IBE) is always available; GA4 traffic is added when connected.
 Read `config/analytics.md` for the full logic (9A Triage / 9B Opportunity).
 
 ### STEP 10 — Export
