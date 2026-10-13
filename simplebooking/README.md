@@ -33,19 +33,11 @@ You only see the properties your account is authorised for.
 
 ## What the plugin runs, sends and downloads
 
-- **Network**: the skills call only the two SimpleBooking connectors above, and only
-  their read tools (queries and aggregations). Nothing is written back to SimpleBooking.
-- **Optional, only if you have connected them yourself**: `sb-hotel-content-audit` can
-  add website traffic by language and country from a Google Analytics connector;
-  `sb-revenue-lens` can use Claude's web search to suggest events that may explain a
-  demand spike, always labelled as a hypothesis. Neither is required, and the plugin
-  does not install them.
-- **Local scripts**: three Python scripts run on your machine with the standard library
-  only and make no network calls — `sb-reservation-insights/scripts/verify.py` and
-  `sb-demand-capture/scripts/verify.py` re-check the arithmetic of an answer,
-  `sb-revenue-lens/scripts/build_report.py` writes the HTML report to a local file.
-- **Downloads**: the HTML report of `sb-revenue-lens` loads Chart.js 4.4.1 from
-  `cdnjs.cloudflare.com` when you open it in a browser. Nothing else is downloaded.
+- **Core connectors**: the skills call the two SimpleBooking connectors above, using their read tools only (queries and aggregations). Nothing is written back to SimpleBooking.
+- **Other services**: `sb-hotel-content-audit` checks whether a Google Analytics connector and the Zucchetti Travel Data Lake connector are available in your Claude account. If they are, it queries them: Google Analytics for website traffic by language and country, and the Data Lake for market demand. The Data Lake query uses the property's GPS coordinates, date ranges, and aggregated parameters. This check runs as part of the analysis, without a separate confirmation. The plugin does not install either connector.
+- **Web search**: `sb-revenue-lens` can use Claude's web search, when available, to suggest events that may explain a demand spike. Search queries are sent to the search provider, and any result is labelled as a hypothesis.
+- **Local scripts**: three Python scripts run on your machine with the standard library only and make no network calls. `sb-reservation-insights/scripts/verify.py` and `sb-demand-capture/scripts/verify.py` re-check the arithmetic of an answer. `sb-revenue-lens/scripts/build_report.py` writes the HTML report to a local file.
+- **Downloads**: the HTML report of `sb-revenue-lens` loads Chart.js 4.4.1 from a public content delivery network when you open it in a browser. No hotel or guest data is sent with that request.
 
 ## Data
 
@@ -53,6 +45,10 @@ The skills read your property's data through your own SimpleBooking login, with 
 permissions that login already has. Reservation figures come from aggregation queries
 (counts, room nights, revenue by period, channel, market). The plugin stores nothing
 outside your Claude conversation and the report files you choose to generate.
+
+## Privacy
+
+Read more about our policies in the [Privacy](https://github.com/qntweb/simplebooking-claude-plugin/blob/main/docs/privacy-policy.md) document.
 
 ## License
 
