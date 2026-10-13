@@ -17,5 +17,6 @@
     "booking engine",
     "simplebooking",
     "hospitality"
-  ]
+  ],
+  "documentationUrl": "https://github.com/qntweb/simplebooking-claude-plugin/blob/main/simplebooking/README.md"
 }
