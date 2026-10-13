@@ -102,7 +102,7 @@ To exercise your rights, contact privacy@qnt.it.
 
 ## 12. Changes
 
-We may update this policy. Material changes will be notified through [the plugin's changelog and the SimpleBooking account email]. The version and date at the top of this document show when it was last updated.
+We may update this policy. Material changes will be notified through the SimpleBooking account email. The version and date at the top of this document show when it was last updated.
 
 ## 13. Contact
 
