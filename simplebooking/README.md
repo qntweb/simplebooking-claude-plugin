@@ -46,10 +46,6 @@ permissions that login already has. Reservation figures come from aggregation qu
 (counts, room nights, revenue by period, channel, market). The plugin stores nothing
 outside your Claude conversation and the report files you choose to generate.
 
-## Privacy
-
-Read more about our policies in the [Privacy](https://github.com/qntweb/simplebooking-claude-plugin/blob/main/docs/privacy-policy.md) document.
-
 ## License
 
 [PolyForm Shield 1.0.0](LICENSE) — © 2025-2026 QNT S.r.l. — Zucchetti Group.
