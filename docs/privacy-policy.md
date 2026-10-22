@@ -29,7 +29,7 @@ The plugin reads data through the account you are signed in with. It processes:
 - **Property and operational data:** property details, room types, rates, availability, restrictions, and content such as descriptions and translations.
 - **Aggregated reservation data:** counts, room nights, revenue by period, booking channel, market of origin, lead time, length of stay, cancellations, and similar figures.
 - **Booking engine search data:** aggregated search and demand information from the property's booking engine.
-- **Market demand and traffic data:** aggregated destination demand from the Zucchetti Travel Data Lake, requested with the property's coordinates and date ranges, and, where the Google Analytics connector is available in your account, website traffic by language and country.
+- **Area demand and traffic data:** aggregated searches for stays within a radius of the property, from the SimpleBooking IBE connector, and, where the Google Analytics connector is available in your account, website traffic by language and country.
 - **Queries and results:** the parameters of each request sent to the connectors and the aggregated figures returned. Your Claude conversation itself is handled by Anthropic, as described in section 7.
 
 The connectors are available only to the hotel operator, after authentication via OAuth, and return only data relating to the hotel the operator is authorised for. Responses consist mainly of aggregated counts, sums, and averages for statistical analysis of the property.
@@ -56,16 +56,15 @@ The plugin does not intentionally collect special categories of data (Article 9 
 - Three local scripts run on your device. They use only the Python standard library, make no network calls, and write output files only where you choose.
 - The HTML report loads the Chart.js 4.4.1 library from a public content delivery network when opened in a browser. No hotel or guest data is sent to the network. The only data involved is the standard connection information that any website request carries.
 - **Additional services used by the skills:**
-  - `sb-hotel-content-audit` checks whether a Google Analytics connector and the Zucchetti Travel Data Lake connector are available in your Claude account. If they are, it queries them: Google Analytics for website traffic by language and country, and the Data Lake for market demand, sending the property's coordinates, date ranges, and aggregated query parameters. In the current version this check runs as part of the analysis without a separate confirmation.
+  - After the audit report, `sb-hotel-content-audit` checks whether a Google Analytics connector is available in your Claude account, by listing the Analytics accounts it can access. In the current version this check runs without a separate confirmation. If you then choose an option that includes website traffic, it queries Google Analytics for website traffic by language and country.
   - `sb-revenue-lens` can use Claude's web search, when it is available, to suggest events that may explain a demand spike. Search queries are sent to the search provider. Any result is presented as a hypothesis, not as a fact.
 
   The processing by these services is governed by the relevant provider's terms.
 
 ## 7. Recipients and sub-processors
 
-- **Anthropic, PBC** (USA): provides the Claude model that processes your conversation. Query parameters and responses from the SimpleBooking connectors, including any pseudonymous booking or click identifiers they contain, are transmitted to Anthropic as part of that conversation. The transfer basis depends on your Claude plan, as described in section 8.
+- **Anthropic, PBC** (USA): provides the Claude model that processes your conversation. Query parameters and responses from the SimpleBooking connectors and from the additional services described in section 6, including any pseudonymous booking or click identifiers they contain, are transmitted to Anthropic as part of that conversation. The transfer basis depends on your Claude plan, as described in section 8.
 - **QNT S.r.l. / Zucchetti Group:** operates the SimpleBooking connectors and the plugin.
-- **Zucchetti Travel Data Lake:** receives the aggregated demand queries described in section 6.
 - **Optional, when available in your account:** Google LLC, for the Google Analytics connector; and the search provider used by Claude's web search, when it is used.
 
 We do not sell personal data, and we do not use it for advertising.
