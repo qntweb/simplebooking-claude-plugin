@@ -1,7 +1,7 @@
 {
   "name": "simplebooking",
   "displayName": "Simple Booking",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "SimpleBooking data analysis skills (reservations, revenue, content, demand) for hotel customers, built on the IBE and BackOffice MCP connectors.",
   "author": {
     "name": "Simple Booking - QNT / Zucchetti Group",
@@ -17,5 +17,6 @@
     "booking engine",
     "simplebooking",
     "hospitality"
-  ]
+  ],
+  "privacyPolicyUrl": "https://github.com/qntweb/simplebooking-claude-plugin/blob/main/docs/privacy-policy.md"
 }
